@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Power Query — Data Transformation | Olawale Badekale</title>
+<style>
+:root{
+  --teal:#006B6B;--teal-dark:#004F4F;--accent:#00A896;--navy:#1A1A2E;
+  --bg:#F0F7F7;--card:#fff;--border:#D4E8E8;--text:#1A1A2E;--muted:#64748B;
+  --red:#C0392B;--red-bg:#FDE8E8;--green:#2D6A2D;--green-bg:#E8F5E2;
+  --amber:#B45309;--amber-bg:#FEF3E2;--code-bg:#1E2A3A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+
+.header{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.hlogo{width:36px;height:36px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.hleft{display:flex;align-items:center;gap:10px}
+.htitle{font-size:14px;font-weight:600;color:#fff}
+.hsub{font-size:11px;color:#80BFBF;margin-top:1px}
+.hbadge{font-size:11px;font-weight:600;padding:4px 14px;background:var(--teal);color:#fff;border-radius:20px}
+.hright{display:flex;align-items:center;gap:16px}
+.hback{font-size:12px;color:#80BFBF;text-decoration:none}
+.hback:hover{color:#fff}
+
+.container{max-width:1320px;margin:0 auto;padding:1.5rem}
+
+.banner{background:var(--teal);border-radius:10px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;flex-wrap:wrap;gap:10px}
+.banner strong{color:#fff;font-size:14px;font-weight:600;display:block;margin-bottom:2px}
+.banner p{font-size:12px;color:#C0E8E8;max-width:700px;line-height:1.5}
+.scenario-tag{font-size:11px;font-weight:600;color:var(--navy);background:#fff;padding:5px 12px;border-radius:6px;white-space:nowrap}
+
+.steps-bar{display:flex;gap:0;margin-bottom:1.4rem;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.step-btn{flex:1;padding:10px 8px;font-size:11px;font-weight:600;border:none;cursor:pointer;background:transparent;color:var(--muted);transition:all .2s;text-align:center;border-right:1px solid var(--border);position:relative}
+.step-btn:last-child{border-right:none}
+.step-btn.active{background:var(--teal);color:#fff}
+.step-btn.done{background:var(--green-bg);color:var(--green)}
+.step-btn .snum{display:block;font-size:16px;font-weight:700;margin-bottom:2px}
+.step-btn .slbl{display:block;font-size:10px;line-height:1.3}
+
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.4rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.card-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:600;color:var(--text)}
+.card-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.card-body{padding:0;overflow:auto;max-height:380px}
+
+.data-table{width:100%;border-collapse:collapse;font-size:11px}
+.data-table th{padding:8px 10px;background:#f8fbfb;font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border);white-space:nowrap;position:sticky;top:0}
+.data-table td{padding:7px 10px;border-bottom:1px solid #f0f5f5;color:var(--text);white-space:nowrap;max-width:160px;overflow:hidden;text-overflow:ellipsis}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:#f7fbfb}
+.cell-error{color:var(--red);background:var(--red-bg);border-radius:3px;padding:1px 5px}
+.cell-warn{color:var(--amber);background:var(--amber-bg);border-radius:3px;padding:1px 5px}
+.cell-fixed{color:var(--green);background:var(--green-bg);border-radius:3px;padding:1px 5px;font-weight:600}
+.cell-new{background:#e8f0ff;color:#1a3a8f;border-radius:3px;padding:1px 5px;font-weight:600}
+
+.code-card{background:var(--code-bg);border-radius:10px;margin-bottom:1.4rem;overflow:hidden}
+.code-header{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08)}
+.code-title{font-size:12px;font-weight:600;color:#80BFBF}
+.code-lang{font-size:10px;color:#4A9E9E;background:rgba(0,107,107,.3);padding:2px 8px;border-radius:4px}
+.code-body{padding:14px 16px;font-family:'Courier New',monospace;font-size:12px;line-height:1.7;color:#C0E8E8;overflow-x:auto;white-space:pre}
+.kw{color:#78D9C5}
+.fn{color:#82CFFF}
+.str{color:#F9C74F}
+.cm{color:#6A8A8A;font-style:italic}
+.num{color:#FF9F43}
+
+.transform-info{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:1.4rem;display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.ti-item{text-align:center}
+.ti-num{font-size:22px;font-weight:700;color:var(--teal);line-height:1}
+.ti-label{font-size:11px;color:var(--muted);margin-top:4px}
+
+.issue-list{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:1.4rem}
+.issue-title{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)}
+.issues-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.issue-item{padding:10px 12px;border-radius:8px;font-size:12px}
+.issue-item.error{background:var(--red-bg);border-left:3px solid var(--red)}
+.issue-item.warn{background:var(--amber-bg);border-left:3px solid var(--amber)}
+.issue-item.info{background:#EEF2FF;border-left:3px solid #4F46E5}
+.issue-item strong{display:block;margin-bottom:2px;font-size:12px}
+
+.nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:1rem}
+.btn{padding:9px 20px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s}
+.btn-primary{background:var(--teal);color:#fff}
+.btn-primary:hover{background:var(--teal-dark)}
+.btn-secondary{background:var(--card);color:var(--teal);border:1px solid var(--border)}
+.btn-secondary:hover{background:var(--bg)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+.progress-bar{height:4px;background:var(--border);border-radius:2px;margin-bottom:1.4rem;overflow:hidden}
+.progress-fill{height:100%;background:var(--teal);border-radius:2px;transition:width .4s ease}
+
+.summary-card{background:linear-gradient(135deg,var(--teal) 0%,var(--teal-dark) 100%);border-radius:10px;padding:20px;color:#fff;margin-bottom:1.4rem}
+.summary-card h2{font-size:16px;font-weight:600;margin-bottom:8px}
+.summary-card p{font-size:12px;color:#C0E8E8;line-height:1.6;margin-bottom:14px}
+.summary-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.ss-item{background:rgba(255,255,255,.1);border-radius:8px;padding:12px;text-align:center}
+.ss-num{font-size:22px;font-weight:700;color:#fff}
+.ss-label{font-size:10px;color:#A0D4D4;margin-top:3px}
+
+.footer{background:var(--navy);color:#80BFBF;text-align:center;padding:16px;font-size:11px;margin-top:2rem}
+.footer strong{color:#fff}
+.footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="hleft">
+    <div class="hlogo">ST</div>
+    <div>
+      <div class="htitle">Skill Demo 1 — Power Query: Data Transformation</div>
+      <div class="hsub">Senior Insight Analyst Portfolio &nbsp;·&nbsp; Severn Trent Water</div>
+    </div>
+  </div>
+  <div class="hright">
+    <a class="hback" href="index.html">← Back to Dashboard</a>
+    <span class="hbadge">Live Demo</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="banner">
+    <div>
+      <strong>Power Query — Raw to Ready: Cleaning Customer Complaint Data</strong>
+      <p>Real scenario: A data export from the Customer Operation System arrives every Monday morning. It contains duplicates, inconsistent formats, null values, and naming errors. This is what the Senior Insight Analyst does before any analysis can begin.</p>
+    </div>
+    <span class="scenario-tag">Skill Demo 1 of 6</span>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:14%"></div></div>
+
+  <div class="steps-bar">
+    <button class="step-btn active" onclick="goStep(0)" id="sb0"><span class="snum">1</span><span class="slbl">Raw Data</span></button>
+    <button class="step-btn" onclick="goStep(1)" id="sb1"><span class="snum">2</span><span class="slbl">Remove Duplicates</span></button>
+    <button class="step-btn" onclick="goStep(2)" id="sb2"><span class="snum">3</span><span class="slbl">Fix Dates</span></button>
+    <button class="step-btn" onclick="goStep(3)" id="sb3"><span class="snum">4</span><span class="slbl">Standardise Categories</span></button>
+    <button class="step-btn" onclick="goStep(4)" id="sb4"><span class="snum">5</span><span class="slbl">Handle Nulls</span></button>
+    <button class="step-btn" onclick="goStep(5)" id="sb5"><span class="snum">6</span><span class="slbl">Add Columns</span></button>
+    <button class="step-btn" onclick="goStep(6)" id="sb6"><span class="snum">7</span><span class="slbl">Clean Output</span></button>
+  </div>
+
+  <div id="stepContent"></div>
+
+  <div class="nav-row">
+    <button class="btn btn-secondary" id="btnPrev" onclick="prevStep()" disabled>← Previous</button>
+    <span style="font-size:12px;color:var(--muted)" id="stepLabel">Step 1 of 7</span>
+    <button class="btn btn-primary" id="btnNext" onclick="nextStep()">Next Step →</button>
+  </div>
+
+</div>
+
+<footer class="footer">
+  Built by <strong>Olawale Badekale</strong> &nbsp;·&nbsp; Candidate for Customer Experience Data Analytics Specialist &nbsp;·&nbsp; Severn Trent Water
+  &nbsp;·&nbsp; <a href="https://github.com/cuthbertola" target="_blank">github.com/cuthbertola</a>
+  &nbsp;·&nbsp; <a href="mailto:Badekaleolawale@gmail.com">Badekaleolawale@gmail.com</a>
+</footer>
+
+<script>
+let currentStep = 0;
+const totalSteps = 7;
+
+const rawData = [
+  {id:'CMP-001',date:'01/04/2025',customer:'John Smith',category:'billing',hub:'Coventry',status:'Open',priority:'High',days:''},
+  {id:'CMP-002',date:'2025-04-02',customer:'jane doe',category:'WATER QUALITY',hub:'coventry',status:'open',priority:'medium',days:''},
+  {id:'CMP-003',date:'April 3 2025',customer:'MICHAEL BROWN',category:'Supply Interruption',hub:'Derby ',status:'Closed',priority:'Low',days:''},
+  {id:'CMP-001',date:'01/04/2025',customer:'John Smith',category:'billing',hub:'Coventry',status:'Open',priority:'High',days:''},
+  {id:'CMP-004',date:'04-04-2025',customer:'Sarah  Wilson',category:'bill',hub:'Leicester',status:'In Progress',priority:'high',days:''},
+  {id:'CMP-005',date:'',customer:'Robert Jones',category:'sewage',hub:'N/A',status:'Open',priority:'',days:''},
+  {id:'CMP-006',date:'06/04/2025',customer:'Emily Davis',category:'Meter Reading',hub:'Birmingham',status:'closed',priority:'Low',days:''},
+  {id:'CMP-007',date:'2025/04/07',customer:'david  taylor',category:'BILLING',hub:'Shrewsbury',status:'Open',priority:'Medium',days:''},
+  {id:'CMP-008',date:'April 8th 2025',customer:'Lisa Anderson',category:'water quality',hub:'derby',status:'NULL',priority:'High',days:''},
+  {id:'CMP-009',date:'09/04/2025',customer:'James Martin',category:'supply interruption',hub:'COVENTRY',status:'Open',priority:'medium',days:''},
+  {id:'CMP-010',date:'10/04/2025',customer:'',category:'Account Mgmt',hub:'Leicester',status:'Open',priority:'Low',days:''},
+];
+
+const steps = [
+  {
+    title: 'Step 1 — Inspect Raw Data',
+    subtitle: 'Raw export from Customer Operation System. Identifying data quality issues before transformation.',
+    code: `<span class="cm">// Power Query M Code — Load raw CSV export</span>
+<span class="kw">let</span>
+    Source = <span class="fn">Csv.Document</span>(
+        <span class="fn">File.Contents</span>(<span class="str">"C:\\Reports\\complaint_export_week14.csv"</span>),
+        [<span class="fn">Delimiter</span>=<span class="str">","</span>, <span class="fn">Encoding</span>=<span class="num">65001</span>]
+    ),
+    PromotedHeaders = <span class="fn">Table.PromoteHeaders</span>(Source),
+    ChangedTypes = <span class="fn">Table.TransformColumnTypes</span>(PromotedHeaders, {
+        {<span class="str">"id"</span>, <span class="fn">type text</span>},
+        {<span class="str">"date"</span>, <span class="fn">type text</span>},   <span class="cm">// Keep as text — mixed formats</span>
+        {<span class="str">"customer"</span>, <span class="fn">type text</span>},
+        {<span class="str">"category"</span>, <span class="fn">type text</span>},
+        {<span class="str">"hub"</span>, <span class="fn">type text</span>},
+        {<span class="str">"status"</span>, <span class="fn">type text</span>},
+        {<span class="str">"priority"</span>, <span class="fn">type text</span>}
+    })
+<span class="kw">in</span>
+    ChangedTypes`,
+    issues: [
+      {type:'error', title:'Duplicate record detected', body:'CMP-001 appears twice — same ID, date and customer name.'},
+      {type:'error', title:'5 different date formats', body:'01/04/2025, 2025-04-02, April 3 2025, 04-04-2025, 2025/04/07'},
+      {type:'error', title:'Inconsistent category names', body:'"billing", "BILLING", "bill" all refer to the same category.'},
+      {type:'warn', title:'Mixed case text throughout', body:'customer, hub, status and priority columns all inconsistent.'},
+      {type:'warn', title:'Null and N/A values', body:'Empty date, empty customer name, N/A hub, NULL status.'},
+      {type:'warn', title:'Extra whitespace in cells', body:'"Sarah  Wilson", "David  Taylor", "Derby " contain extra spaces.'},
+    ],
+    transform: null,
+    stats: {rows:11, dupes:1, errors:6, ready:0}
+  },
+  {
+    title: 'Step 2 — Remove Duplicate Records',
+    subtitle: 'Power Query identifies and removes exact duplicate rows based on the Complaint ID column.',
+    code: `<span class="cm">// Remove duplicate rows — keep first occurrence</span>
+RemovedDuplicates = <span class="fn">Table.Distinct</span>(
+    ChangedTypes,
+    {<span class="str">"id"</span>}   <span class="cm">// Deduplicate on Complaint ID</span>
+),
+
+<span class="cm">// Log how many rows were removed</span>
+RowsBefore = <span class="fn">Table.RowCount</span>(ChangedTypes),  <span class="cm">// 11</span>
+RowsAfter  = <span class="fn">Table.RowCount</span>(RemovedDuplicates), <span class="cm">// 10</span>
+Removed    = RowsBefore - RowsAfter  <span class="cm">// = 1 duplicate removed</span>`,
+    removeRow: 3,
+    stats: {rows:10, dupes:0, errors:5, ready:0}
+  },
+  {
+    title: 'Step 3 — Standardise Date Formats',
+    subtitle: 'All five date formats converted to ISO standard (DD/MM/YYYY) using conditional parsing logic.',
+    code: `<span class="cm">// Standardise mixed date formats to DD/MM/YYYY</span>
+StandardisedDates = <span class="fn">Table.TransformColumns</span>(
+    RemovedDuplicates,
+    {{<span class="str">"date"</span>, <span class="kw">each</span>
+        <span class="kw">if</span> _ = <span class="str">""</span> <span class="kw">then</span> <span class="str">"Unknown"</span>
+        <span class="kw">else if</span> <span class="fn">Text.Contains</span>(_, <span class="str">"-"</span>) <span class="kw">and</span> <span class="fn">Text.StartsWith</span>(_, <span class="str">"2025"</span>)
+            <span class="kw">then</span> <span class="fn">Date.ToText</span>(<span class="fn">Date.FromText</span>(_), <span class="str">"dd/MM/yyyy"</span>)
+        <span class="kw">else if</span> <span class="fn">Text.Contains</span>(_, <span class="str">"/"</span>) <span class="kw">and</span> <span class="fn">Text.Length</span>(_) = <span class="num">10</span>
+            <span class="kw">then</span> _  <span class="cm">// already correct</span>
+        <span class="kw">else</span>
+            <span class="fn">Date.ToText</span>(<span class="fn">Date.FromText</span>(_,<span class="str">"en-GB"</span>),<span class="str">"dd/MM/yyyy"</span>),
+        <span class="fn">type text</span>}}
+)`,
+    stats: {rows:10, dupes:0, errors:4, ready:0}
+  },
+  {
+    title: 'Step 4 — Standardise Category Names',
+    subtitle: 'Normalise all complaint category variants to consistent values using a replacement table.',
+    code: `<span class="cm">// Build category replacement table</span>
+CategoryMap = <span class="fn">Table.FromRows</span>({
+    {<span class="str">"bill"</span>,                <span class="str">"Billing"</span>},
+    {<span class="str">"billing"</span>,             <span class="str">"Billing"</span>},
+    {<span class="str">"BILLING"</span>,             <span class="str">"Billing"</span>},
+    {<span class="str">"WATER QUALITY"</span>,       <span class="str">"Water Quality"</span>},
+    {<span class="str">"water quality"</span>,       <span class="str">"Water Quality"</span>},
+    {<span class="str">"Supply Interruption"</span>, <span class="str">"Supply Interruption"</span>},
+    {<span class="str">"supply interruption"</span>, <span class="str">"Supply Interruption"</span>},
+    {<span class="str">"sewage"</span>,              <span class="str">"Sewage / Flooding"</span>},
+    {<span class="str">"Account Mgmt"</span>,        <span class="str">"Account Management"</span>}
+}),
+
+<span class="cm">// Join to standardise all category values</span>
+StandardisedCategories = <span class="fn">Table.Join</span>(
+    StandardisedDates, <span class="str">"category"</span>,
+    CategoryMap, <span class="str">"raw"</span>,
+    <span class="fn">JoinKind.LeftOuter</span>
+)`,
+    stats: {rows:10, dupes:0, errors:2, ready:0}
+  },
+  {
+    title: 'Step 5 — Handle Null and Missing Values',
+    subtitle: 'Replace nulls, blanks, and N/A entries with standardised "Unknown" values and apply proper case to text.',
+    code: `<span class="cm">// Replace null, blank, N/A values</span>
+HandledNulls = <span class="fn">Table.TransformColumns</span>(
+    StandardisedCategories,
+    {
+        {<span class="str">"customer"</span>, <span class="kw">each</span> <span class="kw">if</span> _ = <span class="str">""</span> <span class="kw">or</span> _ = <span class="str">"NULL"</span>
+            <span class="kw">then</span> <span class="str">"Unknown Customer"</span>
+            <span class="kw">else</span> <span class="fn">Text.Proper</span>(<span class="fn">Text.Trim</span>(_))},
+        {<span class="str">"hub"</span>, <span class="kw">each</span> <span class="kw">if</span> _ = <span class="str">"N/A"</span> <span class="kw">or</span> _ = <span class="str">""</span>
+            <span class="kw">then</span> <span class="str">"Unknown"</span>
+            <span class="kw">else</span> <span class="fn">Text.Proper</span>(<span class="fn">Text.Trim</span>(_))},
+        {<span class="str">"status"</span>, <span class="kw">each</span> <span class="kw">if</span> _ = <span class="str">"NULL"</span> <span class="kw">or</span> _ = <span class="str">""</span>
+            <span class="kw">then</span> <span class="str">"Unknown"</span>
+            <span class="kw">else</span> <span class="fn">Text.Proper</span>(<span class="fn">Text.Trim</span>(_))},
+        {<span class="str">"priority"</span>, <span class="kw">each</span> <span class="kw">if</span> _ = <span class="str">""</span>
+            <span class="kw">then</span> <span class="str">"Unknown"</span>
+            <span class="kw">else</span> <span class="fn">Text.Proper</span>(_)}
+    }
+)`,
+    stats: {rows:10, dupes:0, errors:0, ready:0}
+  },
+  {
+    title: 'Step 6 — Add Calculated Columns',
+    subtitle: 'Enrich the dataset with calculated fields: days open, financial year week, and priority score for reporting.',
+    code: `<span class="cm">// Add Days Open calculated column</span>
+AddedDaysOpen = <span class="fn">Table.AddColumn</span>(
+    HandledNulls, <span class="str">"days_open"</span>,
+    <span class="kw">each</span> <span class="kw">if</span> [status] = <span class="str">"Closed"</span> <span class="kw">then</span> <span class="str">"Resolved"</span>
+    <span class="kw">else</span> <span class="fn">Text.From</span>(
+        <span class="fn">Duration.Days</span>(<span class="fn">DateTime.LocalNow</span>() -
+        <span class="fn">Date.FromText</span>([date], <span class="str">"en-GB"</span>))
+    ) & <span class="str">" days"</span>
+),
+
+<span class="cm">// Add priority score for sorting (High=3, Medium=2, Low=1)</span>
+AddedPriorityScore = <span class="fn">Table.AddColumn</span>(
+    AddedDaysOpen, <span class="str">"priority_score"</span>,
+    <span class="kw">each</span> <span class="kw">if</span> [priority] = <span class="str">"High"</span>   <span class="kw">then</span> <span class="num">3</span>
+    <span class="kw">else if</span> [priority] = <span class="str">"Medium"</span> <span class="kw">then</span> <span class="num">2</span>
+    <span class="kw">else</span> <span class="num">1</span>
+),
+
+<span class="cm">// Sort by priority score descending</span>
+SortedByPriority = <span class="fn">Table.Sort</span>(
+    AddedPriorityScore,
+    {{<span class="str">"priority_score"</span>, <span class="fn">Order.Descending</span>}}
+)`,
+    stats: {rows:10, dupes:0, errors:0, ready:10}
+  },
+  {
+    title: 'Step 7 — Clean Output Ready for Analysis',
+    subtitle: 'Transformation complete. 10 clean, structured records ready to load into Power BI or Excel for analysis.',
+    code: `<span class="cm">// Final output — load to Power BI data model</span>
+FinalOutput = <span class="fn">Table.SelectColumns</span>(
+    SortedByPriority,
+    {
+        <span class="str">"id"</span>, <span class="str">"date"</span>, <span class="str">"customer"</span>, <span class="str">"category"</span>,
+        <span class="str">"hub"</span>, <span class="str">"status"</span>, <span class="str">"priority"</span>,
+        <span class="str">"days_open"</span>, <span class="str">"priority_score"</span>
+    }
+)
+<span class="kw">in</span>
+    FinalOutput
+
+<span class="cm">/*
+ TRANSFORMATION SUMMARY:
+ ✓ 1 duplicate removed (CMP-001)
+ ✓ 5 date formats standardised to DD/MM/YYYY
+ ✓ 9 category variants normalised to 6 standard values
+ ✓ 4 null/blank/N/A values replaced
+ ✓ All text trimmed and proper-cased
+ ✓ 2 calculated columns added
+ ✓ Data sorted by priority score
+ Output: 10 rows × 9 columns — ready for analysis
+*/</span>`,
+    stats: {rows:10, dupes:0, errors:0, ready:10}
+  }
+];
+
+function getTableData(step) {
+  let data = JSON.parse(JSON.stringify(rawData));
+  let headers, rows;
+
+  if(step === 0) {
+    return {
+      before: true,
+      headers: ['ID','Date','Customer','Category','Hub','Status','Priority'],
+      rows: data.map((r,i) => ({
+        cells: [
+          {v:r.id, c: r.id==='CMP-001' && i===3 ? 'cell-error' : ''},
+          {v:r.date, c: !r.date?'cell-error': ['2025-04-02','April 3 2025','04-04-2025','2025/04/07','April 8th 2025'].includes(r.date)?'cell-warn':''},
+          {v:r.customer||'(empty)', c:!r.customer?'cell-error':r.customer.includes('  ')?'cell-warn':''},
+          {v:r.category, c:['billing','BILLING','bill','WATER QUALITY','water quality','supply interruption','sewage','Account Mgmt'].includes(r.category)?'cell-warn':''},
+          {v:r.hub||'(empty)', c:r.hub==='N/A'?'cell-error':r.hub!==r.hub.trim()?'cell-warn':''},
+          {v:r.status||'(empty)', c:r.status==='NULL'||!r.status?'cell-error':r.status!==r.status.charAt(0).toUpperCase()+r.status.slice(1).toLowerCase()?'cell-warn':''},
+          {v:r.priority||'(empty)', c:!r.priority?'cell-warn':''}
+        ]
+      }))
+    };
+  }
+
+  if(step === 1) {
+    let filtered = data.filter((r,i) => !(r.id==='CMP-001' && i===3));
+    return {
+      headers: ['ID','Date','Customer','Category','Hub','Status','Priority'],
+      rows: filtered.map(r => ({
+        cells: [
+          {v:r.id, c:''},
+          {v:r.date, c:['2025-04-02','April 3 2025','04-04-2025','2025/04/07','April 8th 2025'].includes(r.date)?'cell-warn':''},
+          {v:r.customer||'(empty)', c:!r.customer?'cell-error':''},
+          {v:r.category, c:'cell-warn'},
+          {v:r.hub, c:r.hub==='N/A'?'cell-error':''},
+          {v:r.status, c:r.status==='NULL'?'cell-error':''},
+          {v:r.priority||'(empty)', c:!r.priority?'cell-warn':''}
+        ]
+      }))
+    };
+  }
+
+  const dateMap = {'2025-04-02':'02/04/2025','April 3 2025':'03/04/2025','04-04-2025':'04/04/2025','2025/04/07':'07/04/2025','April 8th 2025':'08/04/2025','':'Unknown'};
+
+  if(step === 2) {
+    let filtered = data.filter((r,i) => !(r.id==='CMP-001' && i===3));
+    return {
+      headers: ['ID','Date','Customer','Category','Hub','Status','Priority'],
+      rows: filtered.map(r => {
+        let fixed = dateMap[r.date] ? dateMap[r.date] : r.date;
+        return {cells:[
+          {v:r.id,c:''},
+          {v:fixed, c:fixed!==r.date?'cell-fixed':''},
+          {v:r.customer||'(empty)',c:!r.customer?'cell-error':''},
+          {v:r.category,c:'cell-warn'},
+          {v:r.hub,c:r.hub==='N/A'?'cell-error':''},
+          {v:r.status,c:r.status==='NULL'?'cell-error':''},
+          {v:r.priority||'(empty)',c:!r.priority?'cell-warn':''}
+        ]};
+      })
+    };
+  }
+
+  const catMap = {'billing':'Billing','BILLING':'Billing','bill':'Billing','WATER QUALITY':'Water Quality','water quality':'Water Quality','Supply Interruption':'Supply Interruption','supply interruption':'Supply Interruption','sewage':'Sewage / Flooding','Account Mgmt':'Account Management','Meter Reading':'Meter Reading'};
+
+  if(step === 3) {
+    let filtered = data.filter((r,i) => !(r.id==='CMP-001' && i===3));
+    return {
+      headers: ['ID','Date','Customer','Category','Hub','Status','Priority'],
+      rows: filtered.map(r => {
+        let fd = dateMap[r.date]||r.date;
+        let fc = catMap[r.category]||r.category;
+        return {cells:[
+          {v:r.id,c:''},
+          {v:fd,c:fd!==r.date?'cell-fixed':''},
+          {v:r.customer||'(empty)',c:!r.customer?'cell-error':''},
+          {v:fc,c:fc!==r.category?'cell-fixed':''},
+          {v:r.hub,c:r.hub==='N/A'?'cell-error':''},
+          {v:r.status,c:r.status==='NULL'?'cell-error':''},
+          {v:r.priority||'(empty)',c:!r.priority?'cell-warn':''}
+        ]};
+      })
+    };
+  }
+
+  function proper(s){return s?s.trim().replace(/\w\S*/g,t=>t.charAt(0).toUpperCase()+t.substr(1).toLowerCase()):'Unknown';}
+
+  if(step >= 4) {
+    let filtered = data.filter((r,i)=>!(r.id==='CMP-001'&&i===3));
+    let dayMap = {0:'Resolved',1:'25 days',2:'24 days',3:'23 days',4:'22 days',5:'21 days',6:'20 days',7:'19 days',8:'18 days',9:'17 days'};
+    let scoreMap = {'High':3,'Medium':2,'Low':1,'high':3,'medium':2,'low':1};
+
+    if(step === 4) {
+      return {
+        headers: ['ID','Date','Customer','Category','Hub','Status','Priority'],
+        rows: filtered.map((r,i) => {
+          let fd=dateMap[r.date]||r.date||'Unknown';
+          let fc=catMap[r.category]||r.category;
+          let cu=r.customer?proper(r.customer):'Unknown Customer';
+          let ch=r.hub==='N/A'||!r.hub?'Unknown':proper(r.hub);
+          let cs=r.status==='NULL'||!r.status?'Unknown':proper(r.status);
+          let cp=r.priority?proper(r.priority):'Unknown';
+          return {cells:[
+            {v:r.id,c:''},
+            {v:fd,c:fd!==r.date?'cell-fixed':''},
+            {v:cu,c:cu!==r.customer?'cell-fixed':''},
+            {v:fc,c:fc!==r.category?'cell-fixed':''},
+            {v:ch,c:(r.hub==='N/A'||!r.hub||r.hub!==r.hub.trim())?'cell-fixed':''},
+            {v:cs,c:(r.status==='NULL'||!r.status)?'cell-fixed':''},
+            {v:cp,c:(!r.priority)?'cell-fixed':''}
+          ]};
+        })
+      };
+    }
+
+    if(step >= 5) {
+      return {
+        headers: ['ID','Date','Customer','Category','Hub','Status','Priority','Days Open','Score'],
+        rows: filtered.map((r,i) => {
+          let fd=dateMap[r.date]||r.date||'Unknown';
+          let fc=catMap[r.category]||r.category;
+          let cu=r.customer?proper(r.customer):'Unknown Customer';
+          let ch=r.hub==='N/A'||!r.hub?'Unknown':proper(r.hub);
+          let cs=r.status==='NULL'||!r.status?'Unknown':proper(r.status);
+          let cp=r.priority?proper(r.priority):'Unknown';
+          let days=cs==='Closed'?'Resolved':dayMap[i]||'20 days';
+          let score=scoreMap[r.priority]||1;
+          return {cells:[
+            {v:r.id,c:''},
+            {v:fd,c:''},
+            {v:cu,c:''},
+            {v:fc,c:''},
+            {v:ch,c:''},
+            {v:cs,c:''},
+            {v:cp,c:''},
+            {v:days,c:step>=5?'cell-new':''},
+            {v:score,c:step>=5?'cell-new':''}
+          ]};
+        }).sort((a,b)=>(b.cells[8].v||0)-(a.cells[8].v||0))
+      };
+    }
+  }
+}
+
+function renderStep(step) {
+  const s = steps[step];
+  const tableData = getTableData(step);
+  const pct = Math.round(((step+1)/totalSteps)*100);
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('stepLabel').textContent = 'Step '+(step+1)+' of '+totalSteps;
+  document.getElementById('btnPrev').disabled = step===0;
+  document.getElementById('btnNext').textContent = step===totalSteps-1 ? '✓ Complete' : 'Next Step →';
+  document.getElementById('btnNext').disabled = step===totalSteps-1;
+
+  for(let i=0;i<totalSteps;i++){
+    const btn = document.getElementById('sb'+i);
+    btn.className = 'step-btn'+(i===step?' active':i<step?' done':'');
+  }
+
+  let issuesHtml = '';
+  if(step===0 && s.issues) {
+    issuesHtml = `<div class="issue-list">
+      <div class="issue-title">Data Quality Issues Identified — ${s.issues.length} problems found</div>
+      <div class="issues-grid">
+        ${s.issues.map(iss=>`<div class="issue-item ${iss.type}"><strong>${iss.title}</strong>${iss.body}</div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  let summaryHtml = '';
+  if(step===6) {
+    summaryHtml = `<div class="summary-card">
+      <h2>Transformation Complete — Data Ready for Analysis</h2>
+      <p>The raw CRM export has been fully cleaned and structured. This clean dataset now loads directly into Power BI where DAX measures and dashboards can be built on top of it. This process runs automatically every Monday morning — zero manual intervention required.</p>
+      <div class="summary-stats">
+        <div class="ss-item"><div class="ss-num">1</div><div class="ss-label">Duplicate removed</div></div>
+        <div class="ss-item"><div class="ss-num">5</div><div class="ss-label">Date formats standardised</div></div>
+        <div class="ss-item"><div class="ss-num">9</div><div class="ss-label">Category variants normalised</div></div>
+        <div class="ss-item"><div class="ss-num">2</div><div class="ss-label">Calculated columns added</div></div>
+      </div>
+    </div>`;
+  }
+
+  let tableHtml = '';
+  if(tableData) {
+    tableHtml = `<div class="main-grid" style="${step===6?'grid-template-columns:1fr':''}">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">${step===0?'Raw Data — As Exported from CRM':step===6?'Clean Output — Ready for Power BI':'Data After: '+(step)+(step===1?' Duplicate Removal':step===2?' Date Standardisation':step===3?' Category Normalisation':step===4?' Null Handling':' Column Enrichment')}</div>
+            <div class="card-sub">${tableData.rows.length} rows · ${tableData.headers.length} columns${step>0?' · <span style="color:var(--green)">'+s.stats.ready+' records ready</span>':' · <span style="color:var(--red)">'+s.stats.errors+' issues found</span>'}</div>
+          </div>
+        </div>
+        <div class="card-body">
+          <table class="data-table">
+            <thead><tr>${tableData.headers.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+            <tbody>
+              ${tableData.rows.map(r=>`<tr>${r.cells.map(c=>`<td><span class="${c.c||''}">${c.v}</span></td>`).join('')}</tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      ${step>0?`<div class="code-card">
+        <div class="code-header">
+          <span class="code-title">Power Query M Code — ${s.title.split('—')[1].trim()}</span>
+          <span class="code-lang">Power Query M</span>
+        </div>
+        <div class="code-body">${s.code}</div>
+      </div>`:`<div class="code-card">
+        <div class="code-header">
+          <span class="code-title">Power Query M Code — Load Source</span>
+          <span class="code-lang">Power Query M</span>
+        </div>
+        <div class="code-body">${s.code}</div>
+      </div>`}
+    </div>`;
+  }
+
+  document.getElementById('stepContent').innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:1.2rem;display:flex;align-items:flex-start;gap:12px">
+      <div style="width:36px;height:36px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:14px;flex-shrink:0">${step+1}</div>
+      <div>
+        <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px">${s.title}</div>
+        <div style="font-size:12px;color:var(--muted)">${s.subtitle}</div>
+      </div>
+    </div>
+    ${issuesHtml}
+    ${summaryHtml}
+    ${tableHtml}
+  `;
+}
+
+function goStep(n){currentStep=n;renderStep(n);}
+function nextStep(){if(currentStep<totalSteps-1){currentStep++;renderStep(currentStep);}}
+function prevStep(){if(currentStep>0){currentStep--;renderStep(currentStep);}}
+
+renderStep(0);
+</script>
+</body>
+</html>
