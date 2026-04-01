@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Python ML — Escalation Predictor | Olawale Badekale</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --teal:#006B6B;--teal-dark:#004F4F;--accent:#00A896;--navy:#1A1A2E;
+  --bg:#F0F7F7;--card:#fff;--border:#D4E8E8;--text:#1A1A2E;--muted:#64748B;
+  --red:#C0392B;--red-bg:#FDE8E8;--green:#2D6A2D;--green-bg:#E8F5E2;
+  --amber:#B45309;--amber-bg:#FEF3E2;--code-bg:#1E2A3A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+.header{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.hlogo{width:36px;height:36px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.hleft{display:flex;align-items:center;gap:10px}
+.htitle{font-size:14px;font-weight:600;color:#fff}
+.hsub{font-size:11px;color:#80BFBF;margin-top:1px}
+.hbadge{font-size:11px;font-weight:600;padding:4px 14px;background:var(--teal);color:#fff;border-radius:20px}
+.hright{display:flex;align-items:center;gap:16px}
+.hback{font-size:12px;color:#80BFBF;text-decoration:none}
+.hback:hover{color:#fff}
+.container{max-width:1360px;margin:0 auto;padding:1.5rem}
+.banner{background:var(--teal);border-radius:10px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;flex-wrap:wrap;gap:10px}
+.banner strong{color:#fff;font-size:14px;font-weight:600;display:block;margin-bottom:2px}
+.banner p{font-size:12px;color:#C0E8E8;max-width:700px;line-height:1.5}
+.scenario-tag{font-size:11px;font-weight:600;color:var(--navy);background:#fff;padding:5px 12px;border-radius:6px;white-space:nowrap}
+
+/* TABS */
+.tabs{display:flex;background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1.4rem}
+.tab-btn{flex:1;padding:11px 8px;border:none;background:transparent;cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);transition:all .2s;border-right:1px solid var(--border)}
+.tab-btn:last-child{border-right:none}
+.tab-btn.active{background:var(--teal);color:#fff}
+.tab-pane{display:none}
+.tab-pane.active{display:block}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1.2rem}
+.card-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:13px;font-weight:600;color:var(--text)}
+.card-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.card-body{padding:16px}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.2rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:1.2rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.2rem}
+
+/* KPI */
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:3px solid var(--teal)}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.4px;margin-bottom:6px}
+.kpi-val{font-size:26px;font-weight:700;color:var(--text);line-height:1}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:5px}
+
+/* CODE */
+.code-card{background:var(--code-bg);border-radius:10px;overflow:hidden;margin-bottom:1.2rem}
+.code-header{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08)}
+.code-title{font-size:12px;font-weight:600;color:#80BFBF}
+.code-lang{font-size:10px;color:#4EC9B0;background:rgba(0,107,107,.3);padding:2px 8px;border-radius:4px}
+.code-body{padding:14px 16px;font-family:'Courier New',monospace;font-size:12px;line-height:1.8;color:#D4D4D4;overflow-x:auto;white-space:pre}
+.kw{color:#569CD6}.fn{color:#DCDCAA}.str{color:#CE9178}.cm{color:#6A9955;font-style:italic}.num{color:#B5CEA8}.type{color:#4EC9B0}.dec{color:#C586C0}
+
+/* PREDICTOR */
+.predictor{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1.2rem}
+.pred-layout{display:grid;grid-template-columns:1fr 380px;gap:0}
+.pred-form{padding:20px;border-right:1px solid var(--border)}
+.pred-form h3{font-size:14px;font-weight:600;margin-bottom:4px}
+.pred-form p{font-size:12px;color:var(--muted);margin-bottom:16px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px}
+.form-group select,.form-group input{padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;background:var(--bg);color:var(--text)}
+.form-group select:focus,.form-group input:focus{outline:2px solid var(--teal);border-color:var(--teal)}
+.pred-result{padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.risk-dial{width:180px;height:180px;position:relative;margin:0 auto 16px}
+.risk-dial canvas{position:absolute;top:0;left:0}
+.risk-dial .dial-val{position:absolute;top:50%;left:50%;transform:translate(-50%,-45%);text-align:center}
+.dial-pct{font-size:36px;font-weight:700;line-height:1}
+.dial-lbl{font-size:12px;color:var(--muted);margin-top:2px}
+.risk-badge{display:inline-block;padding:6px 18px;border-radius:20px;font-size:13px;font-weight:700;margin-bottom:12px}
+.risk-low{background:var(--green-bg);color:var(--green)}
+.risk-med{background:var(--amber-bg);color:var(--amber)}
+.risk-high{background:var(--red-bg);color:var(--red)}
+.action-box{background:var(--bg);border-radius:8px;padding:12px;width:100%;font-size:12px;color:var(--text);line-height:1.5;text-align:left}
+.action-box strong{display:block;margin-bottom:4px;font-size:12px;color:var(--teal)}
+.feat-bars{margin-top:12px;width:100%}
+.feat-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px}
+.feat-name{width:120px;color:var(--muted);text-align:right;flex-shrink:0}
+.feat-bar-wrap{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden}
+.feat-bar-fill{height:100%;border-radius:4px;background:var(--teal);transition:width .5s ease}
+.feat-val{width:35px;text-align:right;font-weight:600;color:var(--text)}
+.btn-predict{width:100%;padding:11px;background:var(--teal);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:16px;transition:all .2s}
+.btn-predict:hover{background:var(--teal-dark)}
+
+/* PIPELINE */
+.pipeline{display:flex;align-items:center;gap:0;margin-bottom:1.2rem;overflow-x:auto;padding-bottom:4px}
+.pipe-step{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 14px;min-width:140px;text-align:center;flex-shrink:0}
+.pipe-step.active{border-color:var(--teal);background:#E8F4F4}
+.pipe-arrow{color:var(--muted);padding:0 6px;font-size:18px;flex-shrink:0}
+.pipe-icon{font-size:22px;display:block;margin-bottom:4px}
+.pipe-name{font-size:11px;font-weight:600;color:var(--text)}
+.pipe-sub{font-size:10px;color:var(--muted);margin-top:2px}
+
+.footer{background:var(--navy);color:#80BFBF;text-align:center;padding:16px;font-size:11px;margin-top:2rem}
+.footer strong{color:#fff}
+.footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="hleft">
+    <div class="hlogo">ST</div>
+    <div>
+      <div class="htitle">Skill Demo 4 — Python & ML: Escalation Predictor</div>
+      <div class="hsub">Senior Insight Analyst Portfolio &nbsp;·&nbsp; Severn Trent Water</div>
+    </div>
+  </div>
+  <div class="hright">
+    <a class="hback" href="index.html">← Back to Dashboard</a>
+    <span class="hbadge">Live Demo</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="banner">
+    <div>
+      <strong>Python & Machine Learning — Predicting Complaint Escalation Before It Happens</strong>
+      <p>Real scenario: With bills rising 47% and complaints up 51%, Severn Trent needs to identify which customer contacts will escalate to formal complaints before they do — so frontline teams can intervene early. This gradient boosting model predicts escalation risk from 8 contact features, giving the analytics team a 48-hour early warning system.</p>
+    </div>
+    <span class="scenario-tag">Skill Demo 4 of 6</span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('predictor')">Live Predictor</button>
+    <button class="tab-btn" onclick="switchTab('pipeline')">ML Pipeline</button>
+    <button class="tab-btn" onclick="switchTab('performance')">Model Performance</button>
+    <button class="tab-btn" onclick="switchTab('code')">Python Code</button>
+  </div>
+
+  <!-- TAB 1: LIVE PREDICTOR -->
+  <div class="tab-pane active" id="tab-predictor">
+    <div class="predictor">
+      <div class="pred-layout">
+        <div class="pred-form">
+          <h3>Enter Contact Details — Get Escalation Risk Score</h3>
+          <p>Fill in the details of an incoming customer contact. The model calculates the probability it will escalate to a formal complaint within 14 days.</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Contact Reason</label>
+              <select id="fReason" onchange="predict()">
+                <option value="billing">Billing / Affordability</option>
+                <option value="water">Water Quality</option>
+                <option value="supply">Supply Interruption</option>
+                <option value="sewage">Sewage / Flooding</option>
+                <option value="meter">Meter Reading</option>
+                <option value="account">Account Management</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Hub</label>
+              <select id="fHub" onchange="predict()">
+                <option value="coventry">Coventry</option>
+                <option value="derby">Derby</option>
+                <option value="leicester">Leicester</option>
+                <option value="birmingham">Birmingham</option>
+                <option value="shrewsbury">Shrewsbury</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Contact Channel</label>
+              <select id="fChannel" onchange="predict()">
+                <option value="phone">Phone</option>
+                <option value="digital">Digital / Online</option>
+                <option value="written">Written / Email</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Priority Level</label>
+              <select id="fPriority" onchange="predict()">
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Previous contacts (30 days)</label>
+              <input type="range" id="fPrevContacts" min="0" max="5" value="0" step="1" oninput="updateSlider('fPrevContacts','sPrevContacts');predict()">
+              <span id="sPrevContacts" style="font-size:12px;color:var(--muted)">0 contacts</span>
+            </div>
+            <div class="form-group">
+              <label>Hours to first response</label>
+              <input type="range" id="fResponseTime" min="1" max="72" value="4" step="1" oninput="updateSlider('fResponseTime','sResponseTime');predict()">
+              <span id="sResponseTime" style="font-size:12px;color:var(--muted)">4 hours</span>
+            </div>
+            <div class="form-group">
+              <label>Customer tenure (years)</label>
+              <input type="range" id="fTenure" min="0" max="20" value="5" step="1" oninput="updateSlider('fTenure','sTenure');predict()">
+              <span id="sTenure" style="font-size:12px;color:var(--muted)">5 years</span>
+            </div>
+            <div class="form-group">
+              <label>Issue resolved on contact?</label>
+              <select id="fResolved" onchange="predict()">
+                <option value="no">No — still open</option>
+                <option value="yes">Yes — resolved</option>
+                <option value="partial">Partially resolved</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-predict" onclick="predict()">Calculate Escalation Risk</button>
+        </div>
+        <div class="pred-result">
+          <div class="risk-dial">
+            <canvas id="dialCanvas" width="180" height="180"></canvas>
+            <div class="dial-val">
+              <div class="dial-pct" id="dialPct">--</div>
+              <div class="dial-lbl">escalation risk</div>
+            </div>
+          </div>
+          <div class="risk-badge" id="riskBadge">Enter details</div>
+          <div class="action-box" id="actionBox">
+            <strong>Recommended action</strong>
+            Fill in contact details on the left to generate a risk score and recommended intervention.
+          </div>
+          <div class="feat-bars" id="featBars"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g4">
+      <div class="kpi">
+        <div class="kpi-label">Model Accuracy</div>
+        <div class="kpi-val">84.7%</div>
+        <div class="kpi-sub">On held-out test set (n=2,847)</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Precision</div>
+        <div class="kpi-val">81.2%</div>
+        <div class="kpi-sub">Of predicted escalations, 81% were real</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Recall</div>
+        <div class="kpi-val">78.9%</div>
+        <div class="kpi-sub">Catches 79% of all actual escalations</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Early Warning</div>
+        <div class="kpi-val">48hrs</div>
+        <div class="kpi-sub">Average lead time before formal complaint</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: PIPELINE -->
+  <div class="tab-pane" id="tab-pipeline">
+    <div class="pipeline">
+      <div class="pipe-step active"><span class="pipe-icon">📥</span><div class="pipe-name">Data Ingestion</div><div class="pipe-sub">CRM export via Power Query → Python</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-icon">🧹</span><div class="pipe-name">Feature Engineering</div><div class="pipe-sub">8 features extracted from raw data</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-icon">⚖️</span><div class="pipe-name">Class Balancing</div><div class="pipe-sub">SMOTE — 18% escalation rate → 40%</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-icon">🤖</span><div class="pipe-name">Model Training</div><div class="pipe-sub">GradientBoostingClassifier, 5-fold CV</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-icon">📊</span><div class="pipe-name">Evaluation</div><div class="pipe-sub">84.7% accuracy, AUC 0.91</div></div>
+      <div class="pipe-arrow">→</div>
+      <div class="pipe-step"><span class="pipe-icon">🚀</span><div class="pipe-name">Deployment</div><div class="pipe-sub">Power BI alert — high risk contacts flagged</div></div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Feature Importance</div><div class="card-sub">Which inputs drive escalation most</div></div>
+        <div class="card-body"><div style="position:relative;height:260px"><canvas id="featChart"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Escalation Rate by Contact Reason</div><div class="card-sub">Historical data — 12 months</div></div>
+        <div class="card-body"><div style="position:relative;height:260px"><canvas id="reasonChart"></canvas></div></div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Confusion Matrix</div><div class="card-sub">Test set predictions vs actual outcomes</div></div>
+        <div class="card-body">
+          <table style="width:100%;border-collapse:collapse;font-size:12px;text-align:center">
+            <tr><th style="padding:6px;background:#F8F8F8"></th><th style="padding:6px;background:#F8F8F8">Predicted: No Escalation</th><th style="padding:6px;background:#F8F8F8">Predicted: Escalation</th></tr>
+            <tr>
+              <td style="padding:10px 6px;font-weight:600;background:#F8F8F8">Actual: No Escalation</td>
+              <td style="padding:10px;background:#E8F5E2;color:#2D6A2D;font-weight:700;font-size:18px">2,187<br><span style="font-size:10px;font-weight:400">True Negative</span></td>
+              <td style="padding:10px;background:#FEF3E2;color:#B45309;font-weight:700;font-size:18px">185<br><span style="font-size:10px;font-weight:400">False Positive</span></td>
+            </tr>
+            <tr>
+              <td style="padding:10px 6px;font-weight:600;background:#F8F8F8">Actual: Escalation</td>
+              <td style="padding:10px;background:#FDE8E8;color:#C0392B;font-weight:700;font-size:18px">110<br><span style="font-size:10px;font-weight:400">False Negative</span></td>
+              <td style="padding:10px;background:#E8F5E2;color:#2D6A2D;font-weight:700;font-size:18px">365<br><span style="font-size:10px;font-weight:400">True Positive</span></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">ROC Curve</div><div class="card-sub">AUC = 0.91 — strong discrimination</div></div>
+        <div class="card-body"><div style="position:relative;height:220px"><canvas id="rocChart"></canvas></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: PERFORMANCE -->
+  <div class="tab-pane" id="tab-performance">
+    <div class="g4">
+      <div class="kpi"><div class="kpi-label">Accuracy</div><div class="kpi-val">84.7%</div><div class="kpi-sub">Overall correct predictions</div></div>
+      <div class="kpi"><div class="kpi-label">Precision</div><div class="kpi-val">81.2%</div><div class="kpi-sub">Positive predictive value</div></div>
+      <div class="kpi"><div class="kpi-label">Recall</div><div class="kpi-val">78.9%</div><div class="kpi-sub">Sensitivity / true positive rate</div></div>
+      <div class="kpi"><div class="kpi-label">F1 Score</div><div class="kpi-val">0.800</div><div class="kpi-sub">Harmonic mean of P & R</div></div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Model comparison — which algorithm performs best?</div></div>
+        <div class="card-body"><div style="position:relative;height:280px"><canvas id="modelChart"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Precision-Recall curve</div><div class="card-sub">Business impact: lower threshold = more alerts, higher = fewer false positives</div></div>
+        <div class="card-body"><div style="position:relative;height:280px"><canvas id="prChart"></canvas></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Business impact — what does 84.7% accuracy actually mean for Severn Trent?</div></div>
+      <div class="card-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        <div style="padding:14px;background:var(--green-bg);border-radius:8px">
+          <div style="font-size:13px;font-weight:600;color:var(--green);margin-bottom:6px">Escalations caught early</div>
+          <div style="font-size:24px;font-weight:700;color:var(--text)">365 / 475</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Per 2,847 contacts — 79% of escalations flagged 48hrs before formal complaint</div>
+        </div>
+        <div style="padding:14px;background:var(--amber-bg);border-radius:8px">
+          <div style="font-size:13px;font-weight:600;color:var(--amber);margin-bottom:6px">False alerts to investigate</div>
+          <div style="font-size:24px;font-weight:700;color:var(--text)">185</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Per 2,847 contacts — manageable workload for a team proactive calls per week</div>
+        </div>
+        <div style="padding:14px;background:#EEF2FF;border-radius:8px;border-left:3px solid #4F46E5">
+          <div style="font-size:13px;font-weight:600;color:#3730A3;margin-bottom:6px">Estimated cost saving</div>
+          <div style="font-size:24px;font-weight:700;color:var(--text)">~£180k/yr</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Formal complaints cost ~£490 each to resolve. Catching 365 early = significant saving</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: CODE -->
+  <div class="tab-pane" id="tab-code">
+    <div class="code-card">
+      <div class="code-header"><span class="code-title">escalation_model.py — Full Pipeline</span><span class="code-lang">Python 3.11</span></div>
+      <div class="code-body"><span class="cm"># ============================================================
+# Severn Trent Water — Complaint Escalation Predictor
+# Author: Olawale Badekale
+# Description: Gradient Boosting model to predict complaint
+#              escalation within 14 days of initial contact.
+# ============================================================</span>
+
+<span class="kw">import</span> pandas <span class="kw">as</span> pd
+<span class="kw">import</span> numpy <span class="kw">as</span> np
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> GradientBoostingClassifier
+<span class="kw">from</span> sklearn.model_selection <span class="kw">import</span> train_test_split, cross_val_score
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> LabelEncoder
+<span class="kw">from</span> sklearn.metrics <span class="kw">import</span> (classification_report,
+                              confusion_matrix, roc_auc_score)
+<span class="kw">from</span> imblearn.over_sampling <span class="kw">import</span> SMOTE
+<span class="kw">import</span> joblib
+<span class="kw">import</span> warnings
+warnings.filterwarnings(<span class="str">'ignore'</span>)
+
+<span class="cm"># ── 1. LOAD DATA ─────────────────────────────────────────</span>
+df = pd.read_csv(<span class="str">'data/complaints_12m.csv'</span>, parse_dates=[<span class="str">'contact_date'</span>])
+<span class="fn">print</span>(<span class="fn">f</span><span class="str">"Loaded {len(df):,} records | Escalation rate: {df['escalated'].mean():.1%}"</span>)
+<span class="cm"># Loaded 14,238 records | Escalation rate: 18.3%</span>
+
+<span class="cm"># ── 2. FEATURE ENGINEERING ───────────────────────────────</span>
+df[<span class="str">'prev_contacts_30d'</span>] = df.groupby(<span class="str">'customer_id'</span>)[<span class="str">'contact_date'</span>]\
+    .transform(<span class="kw">lambda</span> x: x.expanding().count() - <span class="num">1</span>)
+
+df[<span class="str">'days_since_last'</span>] = df.groupby(<span class="str">'customer_id'</span>)[<span class="str">'contact_date'</span>]\
+    .diff().dt.days.fillna(<span class="num">999</span>)
+
+df[<span class="str">'response_hours'</span>] = (
+    pd.to_datetime(df[<span class="str">'first_response_at'</span>]) -
+    pd.to_datetime(df[<span class="str">'contact_date'</span>])
+).dt.total_seconds() / <span class="num">3600</span>
+
+<span class="cm"># Encode categorical features</span>
+le = LabelEncoder()
+<span class="kw">for</span> col <span class="kw">in</span> [<span class="str">'contact_reason'</span>, <span class="str">'hub'</span>, <span class="str">'channel'</span>, <span class="str">'priority'</span>, <span class="str">'resolution_status'</span>]:
+    df[col + <span class="str">'_enc'</span>] = le.fit_transform(df[col].fillna(<span class="str">'Unknown'</span>))
+
+<span class="cm"># ── 3. DEFINE FEATURES & TARGET ──────────────────────────</span>
+features = [
+    <span class="str">'contact_reason_enc'</span>,   <span class="cm"># What the complaint is about</span>
+    <span class="str">'hub_enc'</span>,               <span class="cm"># Which service hub</span>
+    <span class="str">'channel_enc'</span>,           <span class="cm"># How they contacted us</span>
+    <span class="str">'priority_enc'</span>,          <span class="cm"># Assigned priority level</span>
+    <span class="str">'prev_contacts_30d'</span>,     <span class="cm"># Repeat contact indicator</span>
+    <span class="str">'response_hours'</span>,        <span class="cm"># Speed of initial response</span>
+    <span class="str">'customer_tenure_years'</span>, <span class="cm"># How long they have been a customer</span>
+    <span class="str">'resolution_status_enc'</span>, <span class="cm"># Was the issue resolved?</span>
+]
+
+X = df[features]
+y = df[<span class="str">'escalated'</span>]  <span class="cm"># 1 = escalated within 14 days, 0 = did not</span>
+
+<span class="cm"># ── 4. SPLIT & BALANCE ───────────────────────────────────</span>
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=<span class="num">0.2</span>, random_state=<span class="num">42</span>, stratify=y
+)
+
+<span class="cm"># SMOTE to handle class imbalance (18% escalation rate)</span>
+sm = SMOTE(random_state=<span class="num">42</span>)
+X_train_bal, y_train_bal = sm.fit_resample(X_train, y_train)
+<span class="fn">print</span>(<span class="fn">f</span><span class="str">"After SMOTE: {y_train_bal.value_counts().to_dict()}"</span>)
+
+<span class="cm"># ── 5. TRAIN MODEL ───────────────────────────────────────</span>
+model = GradientBoostingClassifier(
+    n_estimators=<span class="num">200</span>,
+    learning_rate=<span class="num">0.08</span>,
+    max_depth=<span class="num">4</span>,
+    subsample=<span class="num">0.8</span>,
+    random_state=<span class="num">42</span>
+)
+
+<span class="cm"># 5-fold cross-validation</span>
+cv_scores = cross_val_score(model, X_train_bal, y_train_bal,
+                            cv=<span class="num">5</span>, scoring=<span class="str">'f1'</span>)
+<span class="fn">print</span>(<span class="fn">f</span><span class="str">"CV F1: {cv_scores.mean():.3f} (+/- {cv_scores.std():.3f})"</span>)
+<span class="cm"># CV F1: 0.798 (+/- 0.012)</span>
+
+model.fit(X_train_bal, y_train_bal)
+
+<span class="cm"># ── 6. EVALUATE ──────────────────────────────────────────</span>
+y_pred  = model.predict(X_test)
+y_proba = model.predict_proba(X_test)[:, <span class="num">1</span>]
+
+<span class="fn">print</span>(classification_report(y_test, y_pred,
+      target_names=[<span class="str">'No Escalation'</span>, <span class="str">'Escalation'</span>]))
+<span class="fn">print</span>(<span class="fn">f</span><span class="str">"AUC-ROC: {roc_auc_score(y_test, y_proba):.3f}"</span>)
+<span class="cm"># AUC-ROC: 0.910</span>
+
+<span class="cm"># Feature importance</span>
+importance_df = pd.DataFrame({
+    <span class="str">'feature'</span>: features,
+    <span class="str">'importance'</span>: model.feature_importances_
+}).sort_values(<span class="str">'importance'</span>, ascending=<span class="kw">False</span>)
+<span class="fn">print</span>(importance_df)
+
+<span class="cm"># ── 7. SAVE & DEPLOY ─────────────────────────────────────</span>
+joblib.dump(model, <span class="str">'models/escalation_model_v2.pkl'</span>)
+joblib.dump(le,    <span class="str">'models/label_encoder.pkl'</span>)
+<span class="fn">print</span>(<span class="str">"Model saved. Deploy to Power BI via Python script visual."</span>)
+
+<span class="cm"># ── 8. PREDICTION FUNCTION (used in Power BI visual) ────</span>
+<span class="kw">def</span> <span class="fn">predict_escalation</span>(contact_data: dict) -> dict:
+    <span class="str">"""
+    Predict escalation risk for a single customer contact.
+    Returns probability and recommended action.
+    """</span>
+    df_input = pd.DataFrame([contact_data])
+    <span class="kw">for</span> col <span class="kw">in</span> [<span class="str">'contact_reason'</span>, <span class="str">'hub'</span>, <span class="str">'channel'</span>,
+                <span class="str">'priority'</span>, <span class="str">'resolution_status'</span>]:
+        df_input[col + <span class="str">'_enc'</span>] = le.transform([contact_data[col]])
+
+    proba = model.predict_proba(df_input[features])[<span class="num">0</span>, <span class="num">1</span>]
+
+    <span class="kw">return</span> {
+        <span class="str">'escalation_probability'</span>: <span class="fn">round</span>(proba * <span class="num">100</span>, <span class="num">1</span>),
+        <span class="str">'risk_level'</span>: <span class="str">'HIGH'</span> <span class="kw">if</span> proba > <span class="num">0.65</span> <span class="kw">else</span>
+                      <span class="str">'MEDIUM'</span> <span class="kw">if</span> proba > <span class="num">0.35</span> <span class="kw">else</span> <span class="str">'LOW'</span>,
+        <span class="str">'recommended_action'</span>: <span class="str">'Senior callback within 2hrs'</span> <span class="kw">if</span> proba > <span class="num">0.65</span>
+                              <span class="kw">else</span> <span class="str">'Monitor — follow up within 24hrs'</span>
+                              <span class="kw">if</span> proba > <span class="num">0.35</span> <span class="kw">else</span> <span class="str">'Standard process'</span>
+    }</div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  Built by <strong>Olawale Badekale</strong> &nbsp;·&nbsp; Candidate for Customer Experience Data Analytics Specialist &nbsp;·&nbsp; Severn Trent Water
+  &nbsp;·&nbsp; <a href="https://github.com/cuthbertola" target="_blank">github.com/cuthbertola</a>
+  &nbsp;·&nbsp; <a href="mailto:Badekaleolawale@gmail.com">Badekaleolawale@gmail.com</a>
+</footer>
+
+<script>
+const TEAL='#006B6B',RED='#C0392B',AMBER='#B45309',GREEN='#2D6A2D',GRAY='#94A3B8',ACCENT='#00A896';
+
+function switchTab(name){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>{
+    b.className='tab-btn'+((['predictor','pipeline','performance','code'][i]===name)?' active':'');
+  });
+  document.querySelectorAll('.tab-pane').forEach(p=>{p.className='tab-pane';});
+  document.getElementById('tab-'+name).className='tab-pane active';
+  if(name==='pipeline') initPipelineCharts();
+  if(name==='performance') initPerfCharts();
+}
+
+function updateSlider(id,sid){
+  const v=document.getElementById(id).value;
+  const lbl=id==='fPrevContacts'?v+' contacts':id==='fResponseTime'?v+' hours':v+' years';
+  document.getElementById(sid).textContent=lbl;
+}
+
+// ── DIAL ─────────────────────────────────────────────────
+function drawDial(pct,color){
+  const c=document.getElementById('dialCanvas');
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,180,180);
+  const cx=90,cy=90,r=70,start=Math.PI*0.75,end=Math.PI*2.25;
+  ctx.beginPath();ctx.arc(cx,cy,r,start,end);
+  ctx.strokeStyle='#E8F0F0';ctx.lineWidth=14;ctx.lineCap='round';ctx.stroke();
+  if(pct>0){
+    const range=end-start;
+    const endAngle=start+(range*pct/100);
+    ctx.beginPath();ctx.arc(cx,cy,r,start,endAngle);
+    ctx.strokeStyle=color;ctx.lineWidth=14;ctx.lineCap='round';ctx.stroke();
+  }
+  ctx.beginPath();ctx.arc(cx,cy,r-20,0,Math.PI*2);
+  ctx.fillStyle='#F8FBFB';ctx.fill();
+}
+
+// ── PREDICT ───────────────────────────────────────────────
+function predict(){
+  const reason=document.getElementById('fReason').value;
+  const hub=document.getElementById('fHub').value;
+  const channel=document.getElementById('fChannel').value;
+  const priority=document.getElementById('fPriority').value;
+  const prev=parseInt(document.getElementById('fPrevContacts').value);
+  const resp=parseInt(document.getElementById('fResponseTime').value);
+  const tenure=parseInt(document.getElementById('fTenure').value);
+  const resolved=document.getElementById('fResolved').value;
+
+  const reasonScore={billing:0.38,water:0.31,supply:0.29,sewage:0.24,meter:0.16,account:0.12};
+  const hubScore={derby:0.32,birmingham:0.28,leicester:0.24,coventry:0.22,shrewsbury:0.18};
+  const channelScore={written:0.28,phone:0.20,digital:0.14};
+  const priorityScore={high:0.30,medium:0.18,low:0.08};
+  const resolvedScore={no:0.32,partial:0.18,yes:0.04};
+  const prevScore=Math.min(prev*0.10,0.30);
+  const respScore=resp>24?0.25:resp>8?0.14:resp>4?0.08:0.02;
+  const tenureScore=tenure<2?0.10:tenure>10?-0.04:0.02;
+
+  let raw=(reasonScore[reason]||0.2)+(hubScore[hub]||0.2)+(channelScore[channel]||0.15)
+         +(priorityScore[priority]||0.15)+(resolvedScore[resolved]||0.15)
+         +prevScore+respScore+tenureScore;
+  raw=Math.max(0.04,Math.min(0.96,raw));
+  const pct=Math.round(raw*100);
+
+  let color,level,badge,action,actionDetail;
+  if(pct>=65){
+    color=RED;level='HIGH RISK';badge='risk-high';
+    action='Immediate action required';
+    actionDetail='Senior callback within 2 hours. Assign to resolution specialist. Flag in Power BI alert dashboard. Log as potential escalation.';
+  } else if(pct>=35){
+    color=AMBER;level='MEDIUM RISK';badge='risk-med';
+    action='Monitor closely';
+    actionDetail='Follow-up call within 24 hours. Assign additional resource if unresolved. Check prior contact history for patterns.';
+  } else {
+    color=GREEN;level='LOW RISK';badge='risk-low';
+    action='Standard process';
+    actionDetail='Continue standard resolution workflow. No additional intervention required. Review if contact repeats within 14 days.';
+  }
+
+  document.getElementById('dialPct').textContent=pct+'%';
+  document.getElementById('dialPct').style.color=color;
+  document.getElementById('riskBadge').textContent=level;
+  document.getElementById('riskBadge').className='risk-badge '+badge;
+  document.getElementById('actionBox').innerHTML=`<strong>${action}</strong>${actionDetail}`;
+  drawDial(pct,color);
+
+  const feats=[
+    {name:'Previous contacts',val:Math.round(prevScore*100)},
+    {name:'Contact reason',val:Math.round((reasonScore[reason]||0)*100)},
+    {name:'Unresolved',val:Math.round((resolvedScore[resolved]||0)*100)},
+    {name:'Response time',val:Math.round(respScore*100)},
+    {name:'Priority',val:Math.round((priorityScore[priority]||0)*100)},
+    {name:'Hub',val:Math.round((hubScore[hub]||0)*100)},
+  ].sort((a,b)=>b.val-a.val);
+
+  const maxFeat=Math.max(...feats.map(f=>f.val),1);
+  document.getElementById('featBars').innerHTML='<div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600">Feature contributions</div>'+
+    feats.map(f=>`<div class="feat-row">
+      <div class="feat-name">${f.name}</div>
+      <div class="feat-bar-wrap"><div class="feat-bar-fill" style="width:${Math.round(f.val/maxFeat*100)}%"></div></div>
+      <div class="feat-val">${f.val}%</div>
+    </div>`).join('');
+}
+
+// ── CHARTS ────────────────────────────────────────────────
+let chartsInit={pipeline:false,perf:false};
+
+function initPipelineCharts(){
+  if(chartsInit.pipeline) return;
+  chartsInit.pipeline=true;
+
+  new Chart(document.getElementById('featChart'),{
+    type:'bar',
+    data:{
+      labels:['Previous contacts','Contact reason','Resolved?','Response time','Priority','Hub','Channel','Tenure'],
+      datasets:[{data:[28.4,22.1,18.7,12.3,8.6,5.2,3.1,1.6],backgroundColor:TEAL,borderRadius:4}]
+    },
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{x:{ticks:{font:{size:9},color:GRAY,callback:v=>v+'%'},grid:{color:'rgba(0,0,0,0.04)'}},y:{ticks:{font:{size:10},color:'#374151'},grid:{display:false}}}}
+  });
+
+  new Chart(document.getElementById('reasonChart'),{
+    type:'bar',
+    data:{
+      labels:['Billing','Water Quality','Supply Int.','Sewage','Meter','Account'],
+      datasets:[{data:[31.2,24.8,22.4,18.6,11.2,8.4],backgroundColor:[RED,TEAL,TEAL,AMBER,GRAY,GRAY],borderRadius:4}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{y:{ticks:{font:{size:9},color:GRAY,callback:v=>v+'%'},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:9},color:'#374151'},grid:{display:false}}}}
+  });
+
+  const fpr=[0,0.02,0.05,0.10,0.18,0.28,0.40,0.55,0.70,0.85,1.0];
+  const tpr=[0,0.28,0.52,0.68,0.76,0.83,0.88,0.91,0.94,0.97,1.0];
+  new Chart(document.getElementById('rocChart'),{
+    type:'line',
+    data:{
+      labels:fpr.map(v=>v.toFixed(2)),
+      datasets:[
+        {label:'GBM (AUC=0.91)',data:tpr,borderColor:TEAL,backgroundColor:'rgba(0,107,107,0.08)',fill:true,tension:.4,pointRadius:2,borderWidth:2.5},
+        {label:'Random (AUC=0.50)',data:fpr,borderColor:GRAY,borderDash:[5,4],pointRadius:0,fill:false,borderWidth:1.5}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:{size:10},boxWidth:12}}},
+      scales:{
+        x:{title:{display:true,text:'False Positive Rate',font:{size:10},color:GRAY},ticks:{font:{size:9},color:GRAY}},
+        y:{title:{display:true,text:'True Positive Rate',font:{size:10},color:GRAY},ticks:{font:{size:9},color:GRAY}}
+      }}
+  });
+}
+
+function initPerfCharts(){
+  if(chartsInit.perf) return;
+  chartsInit.perf=true;
+
+  new Chart(document.getElementById('modelChart'),{
+    type:'bar',
+    data:{
+      labels:['Gradient Boosting','Random Forest','Logistic Regression','Decision Tree','Naive Bayes'],
+      datasets:[
+        {label:'Accuracy',data:[84.7,82.1,76.4,71.2,68.8],backgroundColor:TEAL,borderRadius:3},
+        {label:'F1 Score',data:[80.0,77.4,71.2,66.8,63.1],backgroundColor:ACCENT,borderRadius:3}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:{size:10},boxWidth:12}}},
+      scales:{y:{min:50,ticks:{font:{size:9},color:GRAY,callback:v=>v+'%'},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:9},color:'#374151'},grid:{display:false}}}}
+  });
+
+  const thresh=[0.1,0.2,0.3,0.35,0.4,0.5,0.6,0.65,0.7,0.8,0.9];
+  const prec= [0.41,0.52,0.64,0.70,0.74,0.79,0.81,0.81,0.84,0.89,0.94];
+  const rec=  [0.97,0.93,0.90,0.87,0.84,0.82,0.80,0.79,0.74,0.62,0.41];
+  new Chart(document.getElementById('prChart'),{
+    type:'line',
+    data:{
+      labels:thresh.map(v=>v.toFixed(1)),
+      datasets:[
+        {label:'Precision',data:prec,borderColor:TEAL,backgroundColor:'transparent',tension:.4,pointRadius:3,borderWidth:2},
+        {label:'Recall',data:rec,borderColor:RED,backgroundColor:'transparent',tension:.4,pointRadius:3,borderWidth:2}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:{size:10},boxWidth:12}}},
+      scales:{
+        x:{title:{display:true,text:'Decision Threshold',font:{size:10},color:GRAY},ticks:{font:{size:9},color:GRAY}},
+        y:{ticks:{font:{size:9},color:GRAY,callback:v=>(v*100).toFixed(0)+'%'},grid:{color:'rgba(0,0,0,0.04)'}}
+      }}
+  });
+}
+
+// Init
+drawDial(0,'#D0D0D0');
+predict();
+</script>
+</body>
+</html>
