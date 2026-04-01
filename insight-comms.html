@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insight Communication — Stakeholder Briefing | Olawale Badekale</title>
+<style>
+:root{
+  --teal:#006B6B;--teal-dark:#004F4F;--accent:#00A896;--navy:#1A1A2E;
+  --bg:#F0F7F7;--card:#fff;--border:#D4E8E8;--text:#1A1A2E;--muted:#64748B;
+  --red:#C0392B;--red-bg:#FDE8E8;--green:#2D6A2D;--green-bg:#E8F5E2;
+  --amber:#B45309;--amber-bg:#FEF3E2;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+.header{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.hlogo{width:36px;height:36px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.hleft{display:flex;align-items:center;gap:10px}
+.htitle{font-size:14px;font-weight:600;color:#fff}
+.hsub{font-size:11px;color:#80BFBF;margin-top:1px}
+.hbadge{font-size:11px;font-weight:600;padding:4px 14px;background:var(--teal);color:#fff;border-radius:20px}
+.hright{display:flex;align-items:center;gap:16px}
+.hback{font-size:12px;color:#80BFBF;text-decoration:none}
+.hback:hover{color:#fff}
+.container{max-width:1380px;margin:0 auto;padding:1.5rem}
+.banner{background:var(--teal);border-radius:10px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;flex-wrap:wrap;gap:10px}
+.banner strong{color:#fff;font-size:14px;font-weight:600;display:block;margin-bottom:2px}
+.banner p{font-size:12px;color:#C0E8E8;max-width:700px;line-height:1.5}
+.scenario-tag{font-size:11px;font-weight:600;color:var(--navy);background:#fff;padding:5px 12px;border-radius:6px;white-space:nowrap}
+
+.main-layout{display:grid;grid-template-columns:340px 1fr;gap:16px}
+
+/* CONTROLS */
+.controls-panel{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;height:fit-content;position:sticky;top:74px}
+.cp-header{background:var(--navy);padding:12px 16px}
+.cp-header h3{font-size:13px;font-weight:600;color:#fff}
+.cp-header p{font-size:11px;color:#80BFBF;margin-top:2px}
+.cp-body{padding:16px;display:flex;flex-direction:column;gap:14px}
+.ctrl-group{display:flex;flex-direction:column;gap:5px}
+.ctrl-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;display:flex;justify-content:space-between}
+.ctrl-label span{color:var(--text);font-weight:700}
+input[type=range]{width:100%;accent-color:var(--teal)}
+.ctrl-select{padding:7px 10px;border:1px solid var(--border);border-radius:7px;font-size:12px;background:var(--bg);color:var(--text);width:100%}
+.divider{height:1px;background:var(--border);margin:2px 0}
+.btn-generate{width:100%;padding:11px;background:var(--teal);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px}
+.btn-generate:hover{background:var(--teal-dark)}
+.trend-row{display:flex;gap:6px}
+.trend-btn{flex:1;padding:6px 4px;border:1px solid var(--border);border-radius:6px;font-size:10px;font-weight:600;cursor:pointer;text-align:center;background:var(--bg);transition:all .2s}
+.trend-btn.sel{background:var(--teal);color:#fff;border-color:var(--teal)}
+.trend-btn:hover{border-color:var(--teal)}
+
+/* BRIEFING DOC */
+.briefing-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.doc-toolbar{background:#F8F8F8;border-bottom:1px solid #E0E0E0;padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.doc-toolbar-title{font-size:12px;font-weight:600;color:#555}
+.doc-badge{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600}
+.doc-auto{background:#E8F4F4;color:var(--teal)}
+.doc-live{background:#FEF3E2;color:var(--amber)}
+.doc-btn{font-size:11px;padding:4px 10px;border:1px solid #D0D0D0;border-radius:5px;background:#fff;cursor:pointer;color:#555}
+.doc-btn:hover{background:#F0F0F0}
+
+.doc-body{padding:0;overflow:auto;max-height:calc(100vh - 220px)}
+
+/* WORD-STYLE DOCUMENT */
+.word-doc{max-width:760px;margin:0 auto;padding:48px 56px;min-height:600px;background:#fff}
+.doc-header-block{border-bottom:3px solid var(--teal);padding-bottom:16px;margin-bottom:24px}
+.doc-org{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+.doc-title{font-size:22px;font-weight:700;color:var(--navy);line-height:1.2;margin-bottom:8px}
+.doc-meta{display:flex;gap:20px;flex-wrap:wrap}
+.doc-meta-item{font-size:11px;color:var(--muted)}
+.doc-meta-item strong{color:var(--text)}
+
+.doc-section{margin-bottom:28px}
+.doc-section-title{font-size:13px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.doc-section-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.exec-summary{background:var(--navy);border-radius:8px;padding:16px 20px;margin-bottom:28px}
+.exec-summary p{font-size:13px;color:#C0D8D8;line-height:1.7}
+.exec-summary strong{color:#fff}
+
+.kpi-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:28px}
+.ks-item{border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;border-top:3px solid var(--teal)}
+.ks-label{font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.3px;margin-bottom:4px}
+.ks-val{font-size:20px;font-weight:700;color:var(--text);line-height:1}
+.ks-delta{font-size:10px;margin-top:4px}
+.d-bad{color:var(--red)}.d-good{color:var(--green)}.d-warn{color:var(--amber)}
+
+.finding-block{margin-bottom:14px;padding:14px 16px;border-radius:8px;border-left:4px solid}
+.fb-red{background:var(--red-bg);border-color:var(--red)}
+.fb-amber{background:var(--amber-bg);border-color:var(--amber)}
+.fb-green{background:var(--green-bg);border-color:var(--green)}
+.fb-blue{background:#EEF2FF;border-color:#4F46E5}
+.finding-title{font-size:12px;font-weight:700;margin-bottom:4px}
+.finding-body{font-size:12px;line-height:1.6}
+.ft-red{color:var(--red)}.ft-amber{color:var(--amber)}.ft-green{color:var(--green)}.ft-blue{color:#3730A3}
+
+.rec-list{display:flex;flex-direction:column;gap:8px}
+.rec-item{display:flex;gap:10px;align-items:flex-start}
+.rec-num{width:22px;height:22px;border-radius:50%;background:var(--teal);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.rec-text{font-size:12px;line-height:1.6;color:var(--text)}
+.rec-text strong{color:var(--navy);display:block;margin-bottom:1px;font-size:12px}
+
+.next-steps-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.ns-item{padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:11px}
+.ns-who{font-size:10px;font-weight:600;color:var(--teal);text-transform:uppercase;margin-bottom:3px}
+.ns-action{font-size:12px;color:var(--text);line-height:1.4}
+.ns-when{font-size:10px;color:var(--muted);margin-top:3px}
+
+.doc-footer-block{border-top:1px solid var(--border);padding-top:12px;margin-top:28px;display:flex;justify-content:space-between;align-items:center}
+.doc-footer-block span{font-size:10px;color:var(--muted)}
+
+.auto-tag{display:inline-block;background:#E8F4F4;color:var(--teal);font-size:9px;font-weight:600;padding:1px 6px;border-radius:3px;margin-left:6px;vertical-align:middle}
+
+.footer{background:var(--navy);color:#80BFBF;text-align:center;padding:16px;font-size:11px;margin-top:2rem}
+.footer strong{color:#fff}
+.footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="hleft">
+    <div class="hlogo">ST</div>
+    <div>
+      <div class="htitle">Skill Demo 5 — Insight Communication: Senior Stakeholder Briefing</div>
+      <div class="hsub">Senior Insight Analyst Portfolio &nbsp;·&nbsp; Severn Trent Water</div>
+    </div>
+  </div>
+  <div class="hright">
+    <a class="hback" href="index.html">← Back to Dashboard</a>
+    <span class="hbadge">Live Demo</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="banner">
+    <div>
+      <strong>Insight Communication — Translating Data Into Senior Stakeholder Decisions</strong>
+      <p>Real scenario: Every Friday the Senior Insight Analyst sends a Customer Performance Briefing to the Customer Hub Director and senior leadership team. This tool shows how raw KPI data is translated into clear, structured, evidence-based narrative — the skill Severn Trent's spec calls out explicitly: "communicating insights clearly and confidently to senior stakeholders".</p>
+    </div>
+    <span class="scenario-tag">Skill Demo 5 of 6</span>
+  </div>
+
+  <div class="main-layout">
+    <!-- CONTROLS -->
+    <div class="controls-panel">
+      <div class="cp-header">
+        <h3>This Week's Performance Data</h3>
+        <p>Adjust metrics — briefing updates live</p>
+      </div>
+      <div class="cp-body">
+        <div class="ctrl-group">
+          <div class="ctrl-label">C-MeX Score <span id="lCmex">74.2</span></div>
+          <input type="range" id="rCmex" min="65" max="82" value="74.2" step="0.1" oninput="upd('lCmex',this.value,'');gen()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">C-MeX vs Prior Year <span id="lCmexDelta">-1.8</span></div>
+          <input type="range" id="rCmexDelta" min="-5" max="3" value="-1.8" step="0.1" oninput="upd('lCmexDelta',this.value,'');gen()">
+        </div>
+        <div class="divider"></div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Total Complaints <span id="lComplaints">1,247</span></div>
+          <input type="range" id="rComplaints" min="600" max="2200" value="1247" step="1" oninput="upd('lComplaints',parseInt(this.value).toLocaleString(),'');gen()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Complaints vs Prior Week <span id="lCompDelta">+8%</span></div>
+          <input type="range" id="rCompDelta" min="-20" max="40" value="8" step="1" oninput="upd('lCompDelta',(this.value>0?'+':'')+this.value+'%','');gen()">
+        </div>
+        <div class="divider"></div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">First Contact Resolution <span id="lFcr">67.3%</span></div>
+          <input type="range" id="rFcr" min="50" max="85" value="67.3" step="0.1" oninput="upd('lFcr',this.value+'%','');gen()">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Repeat Contact Rate <span id="lRepeat">28.4%</span></div>
+          <input type="range" id="rRepeat" min="10" max="45" value="28.4" step="0.1" oninput="upd('lRepeat',this.value+'%','');gen()">
+        </div>
+        <div class="divider"></div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Top Issue</div>
+          <select class="ctrl-select" id="sTopIssue" onchange="gen()">
+            <option value="billing">Billing / Affordability</option>
+            <option value="water">Water Quality</option>
+            <option value="supply">Supply Interruption</option>
+            <option value="sewage">Sewage / Flooding</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Worst Performing Hub</div>
+          <select class="ctrl-select" id="sWorstHub" onchange="gen()">
+            <option value="Derby">Derby</option>
+            <option value="Birmingham">Birmingham</option>
+            <option value="Leicester">Leicester</option>
+            <option value="Coventry">Coventry</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Overall Trend</div>
+          <div class="trend-row">
+            <div class="trend-btn" id="tDet" onclick="setTrend('deteriorating')">Deteriorating</div>
+            <div class="trend-btn sel" id="tSta" onclick="setTrend('stable')">Stable</div>
+            <div class="trend-btn" id="tImp" onclick="setTrend('improving')">Improving</div>
+          </div>
+        </div>
+        <button class="btn-generate" onclick="gen()">↻ Regenerate Briefing</button>
+      </div>
+    </div>
+
+    <!-- BRIEFING -->
+    <div class="briefing-wrap">
+      <div class="doc-toolbar">
+        <span class="doc-toolbar-title" id="docFilename">ST_CX_Weekly_Briefing_W14_2026.docx</span>
+        <span class="doc-badge doc-auto">AUTO-GENERATED</span>
+        <span class="doc-badge doc-live">LIVE</span>
+        <div style="margin-left:auto;display:flex;gap:6px">
+          <button class="doc-btn">Print</button>
+          <button class="doc-btn">Share</button>
+          <button class="doc-btn" style="background:var(--teal);color:#fff;border-color:var(--teal)">Send to Leadership</button>
+        </div>
+      </div>
+      <div class="doc-body">
+        <div class="word-doc" id="wordDoc"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  Built by <strong>Olawale Badekale</strong> &nbsp;·&nbsp; Candidate for Customer Experience Data Analytics Specialist &nbsp;·&nbsp; Severn Trent Water
+  &nbsp;·&nbsp; <a href="https://github.com/cuthbertola" target="_blank">github.com/cuthbertola</a>
+  &nbsp;·&nbsp; <a href="mailto:Badekaleolawale@gmail.com">Badekaleolawale@gmail.com</a>
+</footer>
+
+<script>
+let trend='stable';
+
+function upd(id,val){document.getElementById(id).textContent=val;}
+function setTrend(t){
+  trend=t;
+  ['tDet','tSta','tImp'].forEach(id=>document.getElementById(id).className='trend-btn');
+  const map={deteriorating:'tDet',stable:'tSta',improving:'tImp'};
+  document.getElementById(map[t]).className='trend-btn sel';
+  gen();
+}
+
+function getVals(){
+  return {
+    cmex:   parseFloat(document.getElementById('rCmex').value),
+    cmexD:  parseFloat(document.getElementById('rCmexDelta').value),
+    comp:   parseInt(document.getElementById('rComplaints').value),
+    compD:  parseInt(document.getElementById('rCompDelta').value),
+    fcr:    parseFloat(document.getElementById('rFcr').value),
+    repeat: parseFloat(document.getElementById('rRepeat').value),
+    issue:  document.getElementById('sTopIssue').value,
+    hub:    document.getElementById('sWorstHub').value,
+    trend:  trend
+  };
+}
+
+const issueLabels={billing:'Billing & Affordability',water:'Water Quality',supply:'Supply Interruption',sewage:'Sewage & Flooding'};
+const issueContext={
+  billing:'The April 2026 bill increase continues to drive customer dissatisfaction, with affordability-related contacts representing 31% of total complaint volume.',
+  water:'Water quality contacts have risen sharply, with taste and discolouration the primary drivers. This pattern typically correlates with seasonal infrastructure pressure.',
+  supply:'Supply interruption complaints are elevated above seasonal norms, concentrated in the Derby and Leicester hub areas. Field operations data suggests pressure issues in two districts.',
+  sewage:'Sewage and flooding contacts have increased following recent rainfall events. Customer sentiment in affected postcodes is significantly below the network average.'
+};
+
+function cmexStatus(v){
+  if(v>=78) return {label:'Above Target',cls:'d-good',sym:'▲'};
+  if(v>=75) return {label:'Below Target — Monitoring',cls:'d-warn',sym:'▼'};
+  if(v>=72) return {label:'Below Target — Action Required',cls:'d-bad',sym:'▼'};
+  return {label:'CRITICAL — ODI Penalty Risk',cls:'d-bad',sym:'▼▼'};
+}
+function fcrStatus(v){
+  if(v>=80) return {label:'Above Target',cls:'d-good'};
+  if(v>=70) return {label:'Below Target',cls:'d-warn'};
+  return {label:'Significantly Below Target',cls:'d-bad'};
+}
+function repeatStatus(v){
+  if(v<20) return {label:'Within Target',cls:'d-good'};
+  if(v<28) return {label:'Above Target',cls:'d-warn'};
+  return {label:'Significantly Above Target',cls:'d-bad'};
+}
+
+function getTrendSentence(v){
+  if(v.trend==='deteriorating') return `The overall customer experience trajectory is <strong>deteriorating</strong>. Multiple KPIs are moving in the wrong direction simultaneously, indicating a systemic issue requiring coordinated operational response.`;
+  if(v.trend==='improving') return `The overall customer experience trajectory is <strong>improving</strong>. The interventions implemented following last week's briefing are beginning to show measurable impact across key indicators.`;
+  return `The overall customer experience trajectory remains <strong>broadly stable</strong> this week, though the persistent gap between current performance and target levels requires continued focus from operational teams.`;
+}
+
+function getExecSummary(v){
+  const cs=cmexStatus(v.cmex);
+  const compWord=v.compD>10?'a significant rise':v.compD>0?'a moderate increase':v.compD<-5?'a notable improvement':v.compD<0?'a marginal improvement':'broadly flat';
+  const fcrWord=v.fcr>=75?'solid':'below-target';
+  return `This week's customer performance data shows a C-MeX score of <strong>${v.cmex.toFixed(1)}</strong> — ${v.cmexD<0?Math.abs(v.cmexD).toFixed(1)+' points below':''+v.cmexD.toFixed(1)+' points above'} the same period last year and ${(78-v.cmex).toFixed(1)} points below our internal target of 78.0. Complaint volume this week was <strong>${v.comp.toLocaleString()}</strong>, representing ${compWord} of ${Math.abs(v.compD)}% versus the prior week. First contact resolution stands at <strong>${v.fcr.toFixed(1)}%</strong> — ${fcrWord} — with repeat contacts at <strong>${v.repeat.toFixed(1)}%</strong> against a target of under 20%. ${getTrendSentence(v)} The primary complaint driver remains <strong>${issueLabels[v.issue]}</strong>, and <strong>${v.hub} hub</strong> continues to underperform relative to network peers.`;
+}
+
+function getFindings(v){
+  const findings=[];
+  const cs=cmexStatus(v.cmex);
+  const isCritical=v.cmex<72;
+  findings.push({
+    cls:v.cmex>=75?'fb-green':v.cmex>=72?'fb-amber':'fb-red',
+    tcls:v.cmex>=75?'ft-green':v.cmex>=72?'ft-amber':'ft-red',
+    title:`C-MeX Score: ${v.cmex.toFixed(1)} — ${cs.label}`,
+    body:`The C-MeX score of ${v.cmex.toFixed(1)} is ${v.cmexD<0?Math.abs(v.cmexD).toFixed(1)+' points below':''+v.cmexD.toFixed(1)+' points above'} the prior year equivalent period. ${isCritical?'The score is now below the Ofwat ODI penalty threshold of 72.0. Immediate escalation to the Director is recommended.':v.cmex<75?'At '+v.cmex.toFixed(1)+', the score is '+(78-v.cmex).toFixed(1)+' points below our internal target of 78.0. Trend analysis indicates the gap is widening.':'Performance is tracking within an acceptable range, though continued monitoring is required to prevent further decline.'}`
+  });
+  findings.push({
+    cls:v.compD>15?'fb-red':v.compD>5?'fb-amber':'fb-green',
+    tcls:v.compD>15?'ft-red':v.compD>5?'ft-amber':'ft-green',
+    title:`Complaint Volume: ${v.comp.toLocaleString()} contacts — ${v.compD>5?'Elevated':v.compD<-5?'Declining':'Stable'}`,
+    body:`${v.comp.toLocaleString()} complaints were received this week, a ${v.compD>=0?'+'+v.compD:v.compD}% ${v.compD>=0?'increase':'decrease'} versus last week. ${issueContext[v.issue]} Power Query analysis of the Customer Operation System data reveals that ${Math.round(v.comp*0.31).toLocaleString()} contacts (31%) relate to ${issueLabels[v.issue]} — the dominant driver for the fourth consecutive week.`
+  });
+  findings.push({
+    cls:v.fcr>=75?'fb-green':v.fcr>=65?'fb-amber':'fb-red',
+    tcls:v.fcr>=75?'ft-green':v.fcr>=65?'ft-amber':'ft-red',
+    title:`First Contact Resolution: ${v.fcr.toFixed(1)}% — ${fcrStatus(v.fcr).label}`,
+    body:`FCR of ${v.fcr.toFixed(1)}% sits ${(80-v.fcr).toFixed(1)} percentage points below the 80% target. DAX analysis of the Power BI data model shows that ${v.issue==='water'?'Water Quality':'Billing'} contacts have the lowest FCR at ${(v.fcr-8.4).toFixed(1)}%, with an average resolution time of ${v.issue==='water'?'8.4':'6.2'} days — generating secondary repeat contacts from the same customers. Improving FCR on this category alone would materially improve the overall rate.`
+  });
+  findings.push({
+    cls:v.repeat>30?'fb-red':v.repeat>22?'fb-amber':'fb-green',
+    tcls:v.repeat>30?'ft-red':v.repeat>22?'ft-amber':'ft-green',
+    title:`Repeat Contact Rate: ${v.repeat.toFixed(1)}% — Target: <20%`,
+    body:`The repeat contact rate of ${v.repeat.toFixed(1)}% remains ${(v.repeat-20).toFixed(1)} percentage points above the 20% target. ${v.hub} hub is the primary contributor at ${(v.repeat+5.8).toFixed(1)}% repeat rate — significantly above all other hubs. Root cause analysis points to ${v.hub==='Derby'?'supply interruption contacts being closed prematurely without physical resolution':'unresolved billing disputes being marked resolved without customer confirmation'}.`
+  });
+  return findings;
+}
+
+function getRecs(v){
+  const recs=[];
+  if(v.repeat>25) recs.push({who:'Operations Director',action:`Commission immediate root cause analysis for ${v.hub} hub repeat contacts. Target: identify top 3 resolution failure points within 5 working days.`,when:'By end of week'});
+  if(v.fcr<72) recs.push({who:'Customer Hub Manager',action:`Review FCR process for ${issueLabels[v.issue]} contacts. Implement specialist callback protocol for contacts unresolved within 48 hours.`,when:'This week'});
+  if(v.cmex<75) recs.push({who:'Senior Insight Analyst',action:`Build targeted C-MeX driver analysis segmenting by contact type, channel, and agent team. Present findings at next weekly review.`,when:'By Wednesday'});
+  recs.push({who:'Analytics Team',action:`Update Power BI escalation risk dashboard to reflect current week thresholds. Flag contacts at high escalation risk to frontline supervisors.`,when:'Monday morning'});
+  if(v.comp>1000) recs.push({who:'Communications Team',action:`Prepare proactive customer communication regarding ${issueLabels[v.issue]} to reduce inbound volume. Template to be reviewed by Director before distribution.`,when:'Tuesday'});
+  recs.push({who:'All Hub Managers',action:`Ensure Priority Services Register customers affected by current issues are contacted proactively. Report completion rate to Analytics team by Thursday.`,when:'Thursday'});
+  return recs.slice(0,4);
+}
+
+function gen(){
+  const v=getVals();
+  const now=new Date();
+  const wk=14;
+  const dateStr=now.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  const findings=getFindings(v);
+  const recs=getRecs(v);
+
+  const doc=`
+    <div class="doc-header-block">
+      <div class="doc-org">Severn Trent Water &nbsp;·&nbsp; Customer Hub &nbsp;·&nbsp; Analytics & Insight</div>
+      <div class="doc-title">Weekly Customer Performance Briefing<br>Week ${wk} — ${dateStr}</div>
+      <div class="doc-meta">
+        <div class="doc-meta-item"><strong>Prepared by:</strong> Olawale Badekale, Senior Insight Analyst</div>
+        <div class="doc-meta-item"><strong>Distribution:</strong> Customer Hub Director, Hub Managers, Operations Director</div>
+        <div class="doc-meta-item"><strong>Classification:</strong> Internal — Management</div>
+        <div class="doc-meta-item"><strong>Data to:</strong> ${dateStr}</div>
+      </div>
+    </div>
+
+    <div class="exec-summary">
+      <p>${getExecSummary(v)}</p>
+    </div>
+
+    <div class="kpi-strip">
+      ${(()=>{
+        const cs=cmexStatus(v.cmex);
+        const fs=fcrStatus(v.fcr);
+        const rs=repeatStatus(v.repeat);
+        return `
+        <div class="ks-item">
+          <div class="ks-label">C-MeX Score</div>
+          <div class="ks-val">${v.cmex.toFixed(1)}</div>
+          <div class="ks-delta ${cs.cls}">${cs.sym} ${Math.abs(v.cmexD).toFixed(1)}pts YoY &nbsp;|&nbsp; Target: 78.0</div>
+        </div>
+        <div class="ks-item">
+          <div class="ks-label">Complaints</div>
+          <div class="ks-val">${v.comp.toLocaleString()}</div>
+          <div class="ks-delta ${v.compD>5?'d-bad':v.compD<-5?'d-good':'d-warn'}">${v.compD>0?'▲':'▼'} ${Math.abs(v.compD)}% vs last week</div>
+        </div>
+        <div class="ks-item">
+          <div class="ks-label">FCR Rate</div>
+          <div class="ks-val">${v.fcr.toFixed(1)}%</div>
+          <div class="ks-delta ${fs.cls}">${v.fcr>=80?'▲':'▼'} ${fs.label}</div>
+        </div>
+        <div class="ks-item">
+          <div class="ks-label">Repeat Contact</div>
+          <div class="ks-val">${v.repeat.toFixed(1)}%</div>
+          <div class="ks-delta ${rs.cls}">${v.repeat<20?'▼':'▲'} Target: &lt;20%</div>
+        </div>`;
+      })()}
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-section-title">Key Findings <span class="auto-tag">auto-generated</span></div>
+      ${findings.map(f=>`
+        <div class="finding-block ${f.cls}">
+          <div class="finding-title ${f.tcls}">${f.title}</div>
+          <div class="finding-body">${f.body}</div>
+        </div>`).join('')}
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-section-title">Analytical Recommendations <span class="auto-tag">auto-generated</span></div>
+      <div class="rec-list">
+        ${recs.map((r,i)=>`
+          <div class="rec-item">
+            <div class="rec-num">${i+1}</div>
+            <div class="rec-text"><strong>${r.who}</strong>${r.action} <span style="color:var(--teal);font-size:11px">[${r.when}]</span></div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="doc-section">
+      <div class="doc-section-title">Next Steps — Week ${wk+1}</div>
+      <div class="next-steps-grid">
+        <div class="ns-item">
+          <div class="ns-who">Senior Insight Analyst</div>
+          <div class="ns-action">Deliver ${v.hub} hub root cause analysis and updated C-MeX driver segmentation to Customer Hub Director</div>
+          <div class="ns-when">Wednesday ${dateStr.split(' ')[0]+' Apr 2026'}</div>
+        </div>
+        <div class="ns-item">
+          <div class="ns-who">Operations</div>
+          <div class="ns-action">Implement ${issueLabels[v.issue]} resolution protocol and report FCR improvement against baseline</div>
+          <div class="ns-when">Friday review meeting</div>
+        </div>
+        <div class="ns-item">
+          <div class="ns-who">All Hubs</div>
+          <div class="ns-action">Proactive Priority Services Register outreach completed and logged. Escalation risk contacts actioned within 2 hours of flagging</div>
+          <div class="ns-when">Ongoing this week</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-footer-block">
+      <span>Severn Trent Water &nbsp;·&nbsp; Customer Experience Analytics</span>
+      <span>Prepared by Olawale Badekale, Senior Insight Analyst &nbsp;·&nbsp; Auto-generated from Power BI data model &nbsp;·&nbsp; Week ${wk} ${new Date().getFullYear()}</span>
+    </div>
+  `;
+  document.getElementById('wordDoc').innerHTML=doc;
+}
+
+// Init
+gen();
+</script>
+</body>
+</html>
