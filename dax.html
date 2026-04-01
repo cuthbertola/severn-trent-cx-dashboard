@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DAX — Live KPI Calculator | Olawale Badekale</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --teal:#006B6B;--teal-dark:#004F4F;--accent:#00A896;--navy:#1A1A2E;
+  --bg:#F0F7F7;--card:#fff;--border:#D4E8E8;--text:#1A1A2E;--muted:#64748B;
+  --red:#C0392B;--red-bg:#FDE8E8;--green:#2D6A2D;--green-bg:#E8F5E2;
+  --amber:#B45309;--amber-bg:#FEF3E2;--code-bg:#1E2A3A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+.header{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.hlogo{width:36px;height:36px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.hleft{display:flex;align-items:center;gap:10px}
+.htitle{font-size:14px;font-weight:600;color:#fff}
+.hsub{font-size:11px;color:#80BFBF;margin-top:1px}
+.hbadge{font-size:11px;font-weight:600;padding:4px 14px;background:var(--teal);color:#fff;border-radius:20px}
+.hright{display:flex;align-items:center;gap:16px}
+.hback{font-size:12px;color:#80BFBF;text-decoration:none}
+.hback:hover{color:#fff}
+.container{max-width:1320px;margin:0 auto;padding:1.5rem}
+.banner{background:var(--teal);border-radius:10px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;flex-wrap:wrap;gap:10px}
+.banner strong{color:#fff;font-size:14px;font-weight:600;display:block;margin-bottom:2px}
+.banner p{font-size:12px;color:#C0E8E8;max-width:700px;line-height:1.5}
+.scenario-tag{font-size:11px;font-weight:600;color:var(--navy);background:#fff;padding:5px 12px;border-radius:6px;white-space:nowrap}
+.main-grid{display:grid;grid-template-columns:340px 1fr;gap:16px;margin-bottom:1.4rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.card-header{padding:12px 16px;border-bottom:1px solid var(--border)}
+.card-title{font-size:13px;font-weight:600;color:var(--text)}
+.card-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.card-body{padding:16px}
+.measure-list{display:flex;flex-direction:column;gap:6px}
+.measure-btn{width:100%;text-align:left;padding:10px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px}
+.measure-btn:hover{background:var(--light,#E8F4F4);border-color:var(--teal)}
+.measure-btn.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.measure-btn.active .m-sub{color:#A0D4D4}
+.measure-icon{width:30px;height:30px;border-radius:6px;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.measure-btn.active .measure-icon{background:rgba(255,255,255,.2)}
+.m-name{font-size:12px;font-weight:600}
+.m-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.right-panel{}
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;border-top:3px solid var(--teal)}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.4px;margin-bottom:6px}
+.kpi-val{font-size:26px;font-weight:700;color:var(--text);line-height:1}
+.kpi-delta{font-size:11px;margin-top:5px}
+.delta-bad{color:var(--red)}
+.delta-good{color:var(--green)}
+.code-card{background:var(--code-bg);border-radius:10px;margin-bottom:14px;overflow:hidden}
+.code-header{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.08)}
+.code-title{font-size:12px;font-weight:600;color:#80BFBF}
+.code-lang{font-size:10px;color:#4A9E9E;background:rgba(0,107,107,.3);padding:2px 8px;border-radius:4px}
+.code-body{padding:14px 16px;font-family:'Courier New',monospace;font-size:12px;line-height:1.8;color:#C0E8E8;overflow-x:auto;white-space:pre}
+.kw{color:#78D9C5}.fn{color:#82CFFF}.str{color:#F9C74F}.cm{color:#6A8A8A;font-style:italic}.num{color:#FF9F43}.op{color:#E8B4E8}
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.controls-bar{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.controls-bar label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.controls-bar select,.controls-bar input{font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text)}
+.explain-box{background:var(--green-bg);border:1px solid #B8D8B8;border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.explain-box strong{font-size:13px;color:var(--green);display:block;margin-bottom:4px}
+.explain-box p{font-size:12px;color:#2D4A2D;line-height:1.6}
+.footer{background:var(--navy);color:#80BFBF;text-align:center;padding:16px;font-size:11px;margin-top:2rem}
+.footer strong{color:#fff}
+.footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="hleft">
+    <div class="hlogo">ST</div>
+    <div>
+      <div class="htitle">Skill Demo 2 — DAX: Live KPI Calculator</div>
+      <div class="hsub">Senior Insight Analyst Portfolio &nbsp;·&nbsp; Severn Trent Water</div>
+    </div>
+  </div>
+  <div class="hright">
+    <a class="hback" href="index.html">← Back to Dashboard</a>
+    <span class="hbadge">Live Demo</span>
+  </div>
+</header>
+<div class="container">
+  <div class="banner">
+    <div>
+      <strong>DAX — Building Live KPI Measures for Customer Performance Reporting</strong>
+      <p>Real scenario: The Senior Insight Analyst writes DAX measures in Power BI to calculate C-MeX scores, complaint rates, period-over-period changes, and running totals. Select any measure below to see the DAX formula, the live calculation, and what it tells us operationally.</p>
+    </div>
+    <span class="scenario-tag">Skill Demo 2 of 6</span>
+  </div>
+
+  <div class="controls-bar">
+    <label>Reporting Period</label>
+    <select id="cPeriod" onchange="updateAll()">
+      <option value="current">Current Month (Mar 2026)</option>
+      <option value="q1">Q1 2026 (Jan–Mar)</option>
+      <option value="ytd">Year to Date</option>
+    </select>
+    <label>Hub</label>
+    <select id="cHub" onchange="updateAll()">
+      <option value="all">All Hubs</option>
+      <option value="coventry">Coventry</option>
+      <option value="derby">Derby</option>
+      <option value="leicester">Leicester</option>
+      <option value="birmingham">Birmingham</option>
+    </select>
+    <label>Complaint Category</label>
+    <select id="cCat" onchange="updateAll()">
+      <option value="all">All Categories</option>
+      <option value="billing">Billing</option>
+      <option value="water">Water Quality</option>
+      <option value="supply">Supply Interruption</option>
+    </select>
+  </div>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">DAX Measure Library</div>
+        <div class="card-sub">8 measures used in this dashboard</div>
+      </div>
+      <div class="card-body">
+        <div class="measure-list">
+          <button class="measure-btn active" onclick="selectMeasure(0)" id="mb0">
+            <div class="measure-icon">📊</div>
+            <div><div class="m-name">C-MeX Score</div><div class="m-sub">Weighted satisfaction score</div></div>
+          </button>
+          <button class="measure-btn" onclick="selectMeasure(1)" id="mb1">
+            <div class="measure-icon">📈</div>
+            <div><div class="m-name">C-MeX vs Prior Year</div><div class="m-sub">Period-over-period change</div></div>
+          </button>
+          <button class="measure-btn" onclick="selectMeasure(2)" id="mb2">
+            <div class="measure-icon">🔁</div>
+            <div><div class="m-name">Repeat Contact Rate</div><div class="m-sub">% contacts that repeated</div></div>
+          </button>
+          <button class="measure-btn" onclick="selectMeasure(3)" id="mb3">
+            <div class="measure-icon">✅</div>
+            <div><div class="m-name">First Contact Resolution</div><div class="m-sub">% resolved first contact</div></div>
+          </button>
+          <button class="measure-btn" onclick="selectMeasure(4)" id="mb4">
+            <div class="measure-icon">⚠️</div>
+            <div><div class="m-name">Escalation Rate</div><div class="m-sub">% contacts escalated</div></div>
+          </button>
+          <button class="measure-btn" onclick="selectMeasure(5)" id="mb5">
+            <div class="measure-icon">📉</div>
+            <div><div class="m-name">Rolling 3-Month Avg</div><div class="m-sub">Smoothed trend measure</div></div>
+          </button>
+          <button class="measure-btn" onclick="selectMeasure(6)" id="mb6">
+            <div class="measure-icon">🏆</div>
+            <div><div class="m-name">Hub Performance Rank</div><div class="m-sub">Ranked by C-MeX score</div></div>
+          </button>
+          <button class="measure-btn" onclick="selectMeasure(7)" id="mb7">
+            <div class="measure-icon">💰</div>
+            <div><div class="m-name">ODI Penalty Risk</div><div class="m-sub">Financial exposure calc</div></div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-panel">
+      <div class="kpi-row" id="kpiRow"></div>
+      <div class="explain-box" id="explainBox"></div>
+      <div class="code-card" id="codeCard"></div>
+      <div class="chart-row" id="chartRow">
+        <div class="card">
+          <div class="card-header"><div class="card-title" id="chart1Title">Trend</div></div>
+          <div class="card-body" style="padding:12px"><div style="position:relative;height:180px"><canvas id="chart1"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title" id="chart2Title">By Hub</div></div>
+          <div class="card-body" style="padding:12px"><div style="position:relative;height:180px"><canvas id="chart2"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<footer class="footer">
+  Built by <strong>Olawale Badekale</strong> &nbsp;·&nbsp; Candidate for Customer Experience Data Analytics Specialist &nbsp;·&nbsp; Severn Trent Water
+  &nbsp;·&nbsp; <a href="https://github.com/cuthbertola" target="_blank">github.com/cuthbertola</a>
+  &nbsp;·&nbsp; <a href="mailto:Badekaleolawale@gmail.com">Badekaleolawale@gmail.com</a>
+</footer>
+<script>
+const TEAL='#006B6B',TEAL2='#004F4F',ACCENT='#00A896',RED='#C0392B',AMBER='#B45309',GRAY='#94A3B8';
+const months=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+const hubLabels=['Coventry','Derby','Leicester','Birmingham','Shrewsbury'];
+
+const baseData={
+  cmex:[75.8,75.4,75.1,74.9,74.6,74.3,74.0,73.8,74.1,73.9,74.2,74.2],
+  cmexPY:[77.1,76.9,76.8,76.5,76.3,76.0,75.8,75.6,75.9,75.8,76.0,76.1],
+  repeat:[24.1,24.5,25.0,25.8,26.2,27.0,27.4,28.0,27.8,28.2,28.4,28.4],
+  fcr:[71.2,70.8,70.2,69.8,69.1,68.5,68.0,67.4,67.8,67.5,67.3,67.3],
+  escalation:[4.2,4.3,4.5,4.8,5.0,5.2,5.5,5.8,5.6,5.7,5.9,5.9],
+  hubCmex:[75.1,71.2,74.8,73.6,76.2],
+  hubRepeat:[26.4,34.2,27.8,29.1,24.6],
+  hubFcr:[68.2,62.4,67.8,65.1,71.2],
+  odiBase:2400000
+};
+
+const periodMult={current:1,q1:0.97,ytd:0.95};
+const hubMult={all:1,coventry:0.95,derby:1.08,leicester:0.98,birmingham:1.03};
+const catMult={all:1,billing:1.12,water:0.94,supply:1.06};
+
+let currentMeasure=0;
+let chart1Instance=null,chart2Instance=null;
+
+const measures=[
+  {
+    name:'C-MeX Score',
+    kpis:(d)=>[
+      {label:'Current C-MeX',val:d.cmex.toFixed(1),delta:`▼ ${(d.cmexPY-d.cmex).toFixed(1)} vs prior year`,bad:true},
+      {label:'Industry Average',val:'73.99',delta:'Benchmark (Ofwat 2024-25)',bad:false},
+      {label:'Internal Target',val:'78.0',delta:`Gap: ${(78-d.cmex).toFixed(1)} points to close`,bad:true}
+    ],
+    explain:{title:'What this measure tells us',body:'The C-MeX score is Severn Trent\'s most important customer metric — it directly drives ODI (Outcome Delivery Incentive) payments from Ofwat. Every 0.1 point improvement matters financially. This DAX measure calculates the weighted average of the Customer Satisfaction Survey (CSS) and Customer Effort Score (CES) components in the correct Ofwat-defined ratio.'},
+    code:`<span class="cm">-- DAX Measure: C-MeX Score (Ofwat-weighted calculation)</span>
+C-MeX Score =
+<span class="kw">VAR</span> CSS_Score =
+    <span class="fn">AVERAGEX</span>(
+        <span class="fn">FILTER</span>(
+            CustomerSurveys,
+            CustomerSurveys[SurveyType] = <span class="str">"CSS"</span>
+        ),
+        CustomerSurveys[SatisfactionScore]
+    )
+
+<span class="kw">VAR</span> CES_Score =
+    <span class="fn">AVERAGEX</span>(
+        <span class="fn">FILTER</span>(
+            CustomerSurveys,
+            CustomerSurveys[SurveyType] = <span class="str">"CES"</span>
+        ),
+        CustomerSurveys[SatisfactionScore]
+    )
+
+<span class="cm">-- Ofwat weighting: CSS 50%, CES 50%</span>
+<span class="kw">RETURN</span>
+    (CSS_Score <span class="op">*</span> <span class="num">0.5</span>) <span class="op">+</span> (CES_Score <span class="op">*</span> <span class="num">0.5</span>)`,
+    chart1:{title:'C-MeX Monthly Trend',type:'line',labels:months,data1:baseData.cmex,data2:baseData.cmexPY,label1:'Current Year',label2:'Prior Year',color1:TEAL,color2:GRAY},
+    chart2:{title:'C-MeX by Hub',type:'bar',labels:hubLabels,data:baseData.hubCmex,color:TEAL}
+  },
+  {
+    name:'C-MeX vs Prior Year',
+    kpis:(d)=>[
+      {label:'YoY Change',val:(d.cmex-d.cmexPY).toFixed(2),delta:'Points change vs same period last year',bad:true},
+      {label:'Current Period',val:d.cmex.toFixed(1),delta:'This reporting period',bad:false},
+      {label:'Prior Period',val:d.cmexPY.toFixed(1),delta:'Same period prior year',bad:false}
+    ],
+    explain:{title:'What this measure tells us',body:'Period-over-period comparison is how Ofwat judges performance trajectory. A DAX SAMEPERIODLASTYEAR function pulls the equivalent period from the prior year automatically, so the comparison updates every month without manual adjustment. This is a core measure for senior stakeholder reporting.'},
+    code:`<span class="cm">-- DAX Measure: C-MeX Period-over-Period Change</span>
+C-MeX vs Prior Year =
+<span class="kw">VAR</span> CurrentScore =
+    [C-MeX Score]
+
+<span class="kw">VAR</span> PriorYearScore =
+    <span class="fn">CALCULATE</span>(
+        [C-MeX Score],
+        <span class="fn">SAMEPERIODLASTYEAR</span>(DateTable[Date])
+    )
+
+<span class="kw">VAR</span> Change = CurrentScore <span class="op">-</span> PriorYearScore
+
+<span class="kw">RETURN</span>
+    <span class="fn">IF</span>(
+        <span class="fn">ISBLANK</span>(PriorYearScore),
+        <span class="fn">BLANK</span>(),
+        Change
+    )`,
+    chart1:{title:'YoY Change Monthly',type:'bar',labels:months,data1:baseData.cmex.map((v,i)=>+(v-baseData.cmexPY[i]).toFixed(2)),label1:'YoY Change',color1:RED},
+    chart2:{title:'Current vs Prior Year',type:'line',labels:months,data1:baseData.cmex,data2:baseData.cmexPY,label1:'Current',label2:'Prior Year',color1:TEAL,color2:GRAY}
+  },
+  {
+    name:'Repeat Contact Rate',
+    kpis:(d)=>[
+      {label:'Repeat Contact Rate',val:d.repeat.toFixed(1)+'%',delta:'▲ 4.2pp vs prior year',bad:true},
+      {label:'Target',val:'< 20%',delta:`Current gap: ${(d.repeat-20).toFixed(1)}pp above target`,bad:true},
+      {label:'Highest Hub',val:'Derby 34.2%',delta:'Requires immediate investigation',bad:true}
+    ],
+    explain:{title:'What this measure tells us',body:'Repeat contacts are the clearest signal of unresolved issues. Every repeat contact costs the business twice — operationally and in C-MeX impact. This DAX measure uses COUNTROWS and FILTER to identify contacts from the same customer within 14 days, which is the industry definition of a repeat contact.'},
+    code:`<span class="cm">-- DAX Measure: Repeat Contact Rate (14-day window)</span>
+Repeat Contact Rate =
+<span class="kw">VAR</span> TotalContacts =
+    <span class="fn">COUNTROWS</span>(Complaints)
+
+<span class="kw">VAR</span> RepeatContacts =
+    <span class="fn">COUNTROWS</span>(
+        <span class="fn">FILTER</span>(
+            Complaints,
+            <span class="fn">CALCULATE</span>(
+                <span class="fn">COUNTROWS</span>(Complaints),
+                <span class="fn">FILTER</span>(
+                    <span class="fn">ALL</span>(Complaints),
+                    Complaints[CustomerID] = EARLIER(Complaints[CustomerID])
+                    <span class="op">&&</span> Complaints[ContactDate] >= EARLIER(Complaints[ContactDate]) <span class="op">-</span> <span class="num">14</span>
+                    <span class="op">&&</span> Complaints[ContactDate] < EARLIER(Complaints[ContactDate])
+                )
+            ) > <span class="num">0</span>
+        )
+    )
+
+<span class="kw">RETURN</span>
+    <span class="fn">DIVIDE</span>(RepeatContacts, TotalContacts, <span class="num">0</span>)`,
+    chart1:{title:'Repeat Rate Monthly Trend',type:'line',labels:months,data1:baseData.repeat,label1:'Repeat Rate %',color1:RED},
+    chart2:{title:'Repeat Rate by Hub',type:'bar',labels:hubLabels,data:baseData.hubRepeat,color:RED}
+  },
+  {
+    name:'First Contact Resolution',
+    kpis:(d)=>[
+      {label:'FCR Rate',val:d.fcr.toFixed(1)+'%',delta:'▼ 3.1pp vs prior year',bad:true},
+      {label:'Target',val:'> 80%',delta:`Gap: ${(80-d.fcr).toFixed(1)}pp below target`,bad:true},
+      {label:'Best Hub',val:'Shrewsbury 71.2%',delta:'All hubs below 80% target',bad:true}
+    ],
+    explain:{title:'What this measure tells us',body:'First Contact Resolution is the single strongest predictor of C-MeX score. Customers who get their issue resolved first time are 3x more likely to give a high satisfaction rating. This DAX measure flags contacts where a follow-up contact on the same issue occurred within 30 days as "not resolved first contact".'},
+    code:`<span class="cm">-- DAX Measure: First Contact Resolution Rate</span>
+First Contact Resolution =
+<span class="kw">VAR</span> AllContacts =
+    <span class="fn">COUNTROWS</span>(Complaints)
+
+<span class="kw">VAR</span> ResolvedFirstContact =
+    <span class="fn">COUNTROWS</span>(
+        <span class="fn">FILTER</span>(
+            Complaints,
+            Complaints[ResolutionStatus] = <span class="str">"Resolved"</span>
+            <span class="op">&&</span>
+            <span class="fn">CALCULATE</span>(
+                <span class="fn">COUNTROWS</span>(Complaints),
+                <span class="fn">FILTER</span>(
+                    <span class="fn">ALL</span>(Complaints),
+                    Complaints[CustomerID] = EARLIER(Complaints[CustomerID])
+                    <span class="op">&&</span> Complaints[ContactDate] >  EARLIER(Complaints[ContactDate])
+                    <span class="op">&&</span> Complaints[ContactDate] <= EARLIER(Complaints[ContactDate]) <span class="op">+</span> <span class="num">30</span>
+                )
+            ) = <span class="num">0</span>
+        )
+    )
+
+<span class="kw">RETURN</span>
+    <span class="fn">DIVIDE</span>(ResolvedFirstContact, AllContacts, <span class="num">0</span>)`,
+    chart1:{title:'FCR Monthly Trend',type:'line',labels:months,data1:baseData.fcr,label1:'FCR %',color1:TEAL},
+    chart2:{title:'FCR by Hub',type:'bar',labels:hubLabels,data:baseData.hubFcr,color:ACCENT}
+  },
+  {
+    name:'Escalation Rate',
+    kpis:(d)=>[
+      {label:'Escalation Rate',val:d.esc.toFixed(1)+'%',delta:'▲ 1.7pp vs prior year',bad:true},
+      {label:'Escalations This Month',val:Math.round(d.esc/100*1100).toLocaleString(),delta:'Estimated from contact volume',bad:true},
+      {label:'ODI Exposure',val:'High',delta:'Sustained escalation risks ODI penalty',bad:true}
+    ],
+    explain:{title:'What this measure tells us',body:'Escalated complaints are the most damaging to C-MeX and the most costly to resolve. This measure tracks the % of contacts that move from frontline to formal complaint stage. An escalation rate above 6% triggers a senior stakeholder alert in the dashboard.'},
+    code:`<span class="cm">-- DAX Measure: Escalation Rate + Alert Flag</span>
+Escalation Rate =
+<span class="kw">VAR</span> TotalContacts = <span class="fn">COUNTROWS</span>(Complaints)
+
+<span class="kw">VAR</span> Escalated =
+    <span class="fn">COUNTROWS</span>(
+        <span class="fn">FILTER</span>(Complaints,
+            Complaints[Stage] = <span class="str">"Formal Complaint"</span>
+            <span class="op">||</span> Complaints[Stage] = <span class="str">"CCW Referral"</span>
+        )
+    )
+
+<span class="kw">RETURN</span>
+    <span class="fn">DIVIDE</span>(Escalated, TotalContacts, <span class="num">0</span>)
+
+<span class="cm">-- Escalation Alert Flag (used in conditional formatting)</span>
+Escalation Alert =
+<span class="kw">IF</span>(
+    [Escalation Rate] > <span class="num">0.06</span>,
+    <span class="str">"⚠ ALERT — Review Required"</span>,
+    <span class="str">"Within Threshold"</span>
+)`,
+    chart1:{title:'Escalation Rate Trend',type:'line',labels:months,data1:baseData.escalation,label1:'Escalation %',color1:RED},
+    chart2:{title:'Escalation by Hub',type:'bar',labels:hubLabels,data:[5.1,8.4,5.8,6.2,4.3],color:AMBER}
+  },
+  {
+    name:'Rolling 3-Month Avg',
+    kpis:(d)=>[
+      {label:'Rolling 3M C-MeX',val:((d.cmex+baseData.cmex[10]+baseData.cmex[9])/3).toFixed(2),delta:'Smoothed — removes month-to-month noise',bad:false},
+      {label:'Point-in-Time',val:d.cmex.toFixed(1),delta:'Current month raw score',bad:false},
+      {label:'Smoothing Effect',val:((d.cmex-(d.cmex+baseData.cmex[10]+baseData.cmex[9])/3)).toFixed(2),delta:'Difference: rolling vs point-in-time',bad:false}
+    ],
+    explain:{title:'What this measure tells us',body:'Rolling averages smooth out seasonal noise and one-off events that distort monthly scores. This is the measure used for senior stakeholder presentations and Ofwat reporting — it shows the true underlying trend rather than reacting to single-month spikes. DATESINPERIOD with a -3 month offset is the standard DAX pattern for this.'},
+    code:`<span class="cm">-- DAX Measure: Rolling 3-Month Average C-MeX</span>
+C-MeX Rolling 3M =
+<span class="fn">CALCULATE</span>(
+    [C-MeX Score],
+    <span class="fn">DATESINPERIOD</span>(
+        DateTable[Date],
+        <span class="fn">LASTDATE</span>(DateTable[Date]),
+        <span class="op">-</span><span class="num">3</span>,
+        <span class="fn">MONTH</span>
+    )
+)
+
+<span class="cm">-- Rolling 12-Month (used for Ofwat annual submission)</span>
+C-MeX Rolling 12M =
+<span class="fn">CALCULATE</span>(
+    [C-MeX Score],
+    <span class="fn">DATESINPERIOD</span>(
+        DateTable[Date],
+        <span class="fn">LASTDATE</span>(DateTable[Date]),
+        <span class="op">-</span><span class="num">12</span>,
+        <span class="fn">MONTH</span>
+    )
+)`,
+    chart1:{title:'Point-in-Time vs Rolling Avg',type:'line',labels:months,data1:baseData.cmex,data2:baseData.cmex.map((_,i,a)=>i<2?null:+((a[i]+a[i-1]+a[i-2])/3).toFixed(2)),label1:'Monthly',label2:'Rolling 3M',color1:GRAY,color2:TEAL},
+    chart2:{title:'Rolling Avg by Hub',type:'bar',labels:hubLabels,data:[74.8,71.4,74.2,73.1,75.8],color:ACCENT}
+  },
+  {
+    name:'Hub Performance Rank',
+    kpis:(d)=>[
+      {label:'Top Hub',val:'Shrewsbury',delta:'C-MeX: 76.2 — above target trajectory',bad:false},
+      {label:'Bottom Hub',val:'Derby',delta:'C-MeX: 71.2 — below ODI threshold risk',bad:true},
+      {label:'Performance Spread',val:'5.0 pts',delta:'Gap between best and worst hub',bad:true}
+    ],
+    explain:{title:'What this measure tells us',body:'Hub-level ranking exposes where operational interventions are needed most urgently. Derby consistently underperforms due to supply interruption repeat contacts. This RANKX measure recalculates the ranking dynamically as filters change — so slicing by category or period always shows the correct ranked order.'},
+    code:`<span class="cm">-- DAX Measure: Hub C-MeX Rank (dynamic)</span>
+Hub Rank =
+<span class="fn">RANKX</span>(
+    <span class="fn">ALL</span>(Hubs[HubName]),
+    <span class="fn">CALCULATE</span>([C-MeX Score]),
+    ,
+    <span class="fn">DESC</span>,
+    <span class="fn">DENSE</span>
+)
+
+<span class="cm">-- Hub Performance Label (for conditional formatting)</span>
+Hub Performance Label =
+<span class="kw">VAR</span> Rank = [Hub Rank]
+<span class="kw">RETURN</span>
+    <span class="fn">SWITCH</span>(
+        <span class="fn">TRUE</span>(),
+        Rank = <span class="num">1</span>,  <span class="str">"🥇 Top Performer"</span>,
+        Rank <= <span class="num">2</span>, <span class="str">"✅ Above Average"</span>,
+        Rank <= <span class="num">4</span>, <span class="str">"⚠ Below Average"</span>,
+        <span class="str">"🔴 Requires Attention"</span>
+    )`,
+    chart1:{title:'Hub C-MeX Score Ranked',type:'bar',labels:['Shrewsbury','Coventry','Leicester','Birmingham','Derby'],data1:[76.2,75.1,74.8,73.6,71.2],label1:'C-MeX Score',color1:TEAL},
+    chart2:{title:'Hub Repeat Rate Ranked',type:'bar',labels:['Shrewsbury','Coventry','Leicester','Birmingham','Derby'],data1:[24.6,26.4,27.8,29.1,34.2],label1:'Repeat Rate %',color1:RED}
+  },
+  {
+    name:'ODI Penalty Risk',
+    kpis:(d)=>[
+      {label:'ODI Threshold',val:'72.0',delta:'Score below this = financial penalty',bad:false},
+      {label:'Current Score Gap',val:(d.cmex-72).toFixed(1)+' pts',delta:`Above penalty threshold — monitor closely`,bad:d.cmex-72<3},
+      {label:'Est. Penalty Exposure',val:d.cmex<72?'£'+Math.round((72-d.cmex)*120000).toLocaleString():'Nil',delta:d.cmex>=72?'Score above ODI threshold':'Active penalty accruing',bad:d.cmex<72}
+    ],
+    explain:{title:'What this measure tells us',body:'Ofwat\'s ODI mechanism means C-MeX performance directly impacts the company\'s allowed revenue. With the current score at 74.2 — only 2.2 points above the penalty threshold — this measure provides real-time financial risk visibility. Every analyst presentation to senior leadership includes this figure.'},
+    code:`<span class="cm">-- DAX Measure: ODI Financial Exposure</span>
+ODI Penalty Exposure =
+<span class="kw">VAR</span> CurrentScore  = [C-MeX Score]
+<span class="kw">VAR</span> PenaltyThresh  = <span class="num">72.0</span>
+<span class="kw">VAR</span> PenaltyPerPoint = <span class="num">120000</span>  <span class="cm">-- £ per C-MeX point below threshold</span>
+<span class="kw">VAR</span> Gap = PenaltyThresh <span class="op">-</span> CurrentScore
+
+<span class="kw">RETURN</span>
+    <span class="fn">IF</span>(
+        CurrentScore < PenaltyThresh,
+        Gap <span class="op">*</span> PenaltyPerPoint,
+        <span class="num">0</span>
+    )
+
+<span class="cm">-- ODI Reward Potential (if score improves)</span>
+ODI Reward Potential =
+<span class="kw">VAR</span> TargetScore = <span class="num">78.0</span>
+<span class="kw">VAR</span> RewardPerPoint = <span class="num">95000</span>
+<span class="kw">RETURN</span>
+    <span class="fn">MAX</span>(<span class="num">0</span>, ([C-MeX Score] <span class="op">-</span> TargetScore) <span class="op">*</span> RewardPerPoint)`,
+    chart1:{title:'Score vs ODI Thresholds',type:'line',labels:months,data1:baseData.cmex,data2:Array(12).fill(72),data3:Array(12).fill(78),label1:'C-MeX',label2:'Penalty (72)',label3:'Target (78)',color1:TEAL,color2:RED,color3:ACCENT},
+    chart2:{title:'Hub ODI Risk Status',type:'bar',labels:hubLabels,data:[75.1,71.2,74.8,73.6,76.2],color:TEAL}
+  }
+];
+
+function getMults(){
+  const p=periodMult[document.getElementById('cPeriod').value]||1;
+  const h=hubMult[document.getElementById('cHub').value]||1;
+  const c=catMult[document.getElementById('cCat').value]||1;
+  return {p,h,c};
+}
+
+function getVal(base,m){
+  const {p,h,c}=getMults();
+  const adj=base+(base*(p-1)*0.3)+(base*(h-1)*0.4)+(base*(c-1)*0.3);
+  return +adj.toFixed(2);
+}
+
+function selectMeasure(idx){
+  currentMeasure=idx;
+  for(let i=0;i<8;i++){
+    document.getElementById('mb'+i).className='measure-btn'+(i===idx?' active':'');
+  }
+  updateAll();
+}
+
+function updateAll(){
+  const m=measures[currentMeasure];
+  const {p,h,c}=getMults();
+  const cmexV=getVal(74.2,1)*(p<1?0.99:1)*(h>1?1.02:h<1?0.98:1);
+  const repeatV=getVal(28.4,1)*(p>1?1.02:1);
+  const fcrV=getVal(67.3,1)*(h>1?0.97:1);
+  const escV=getVal(5.9,1)*(h>1?1.05:1);
+  const cmexPYV=76.1;
+  const d={cmex:+cmexV.toFixed(1),cmexPY:cmexPYV,repeat:+repeatV.toFixed(1),fcr:+fcrV.toFixed(1),esc:+escV.toFixed(1)};
+  const kpis=m.kpis(d);
+  document.getElementById('kpiRow').innerHTML=kpis.map(k=>`
+    <div class="kpi-card">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-val">${k.val}</div>
+      <div class="kpi-delta ${k.bad?'delta-bad':'delta-good'}">${k.delta}</div>
+    </div>`).join('');
+  document.getElementById('explainBox').innerHTML=`<strong>${m.explain.title}</strong><p>${m.explain.body}</p>`;
+  document.getElementById('codeCard').innerHTML=`
+    <div class="code-header">
+      <span class="code-title">DAX Measure — ${m.name}</span>
+      <span class="code-lang">DAX (Power BI)</span>
+    </div>
+    <div class="code-body">${m.code}</div>`;
+  renderCharts(m);
+}
+
+function renderCharts(m){
+  if(chart1Instance){chart1Instance.destroy();chart1Instance=null;}
+  if(chart2Instance){chart2Instance.destroy();chart2Instance=null;}
+  const c1=m.chart1, c2=m.chart2;
+  document.getElementById('chart1Title').textContent=c1.title;
+  const ctx1=document.getElementById('chart1').getContext('2d');
+  const ds1=[{label:c1.label1,data:c1.data1,borderColor:c1.color1,backgroundColor:c1.type==='line'?c1.color1+'22':c1.color1,fill:c1.type==='line',tension:.4,pointRadius:2,borderWidth:2,borderRadius:3}];
+  if(c1.data2)ds1.push({label:c1.label2,data:c1.data2,borderColor:c1.color2||GRAY,backgroundColor:'transparent',fill:false,tension:.4,pointRadius:2,borderWidth:1.5,borderDash:[5,4]});
+  if(c1.data3)ds1.push({label:c1.label3||'',data:c1.data3,borderColor:c1.color3||ACCENT,backgroundColor:'transparent',fill:false,tension:.4,pointRadius:0,borderWidth:1.5,borderDash:[4,4]});
+  chart1Instance=new Chart(ctx1,{type:c1.type,data:{labels:c1.labels,datasets:ds1},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:!!c1.data2,labels:{font:{size:10},boxWidth:12}}},scales:{x:{ticks:{font:{size:9},color:GRAY},grid:{display:false}},y:{ticks:{font:{size:9},color:GRAY},grid:{color:'rgba(0,0,0,0.04)'}}}}});
+  document.getElementById('chart2Title').textContent=c2.title;
+  const ctx2=document.getElementById('chart2').getContext('2d');
+  const ds2=[{data:c2.data1||c2.data,backgroundColor:c2.color,borderRadius:4}];
+  chart2Instance=new Chart(ctx2,{type:'bar',data:{labels:c2.labels,datasets:ds2},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:9},color:GRAY},grid:{display:false}},y:{ticks:{font:{size:9},color:GRAY},grid:{color:'rgba(0,0,0,0.04)'}}}}});
+}
+
+selectMeasure(0);
+</script>
+</body>
+</html>
