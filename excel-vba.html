@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Excel VBA — Automated Report Generator | Olawale Badekale</title>
+<style>
+:root{
+  --teal:#006B6B;--teal-dark:#004F4F;--accent:#00A896;--navy:#1A1A2E;
+  --bg:#F0F7F7;--card:#fff;--border:#D4E8E8;--text:#1A1A2E;--muted:#64748B;
+  --red:#C0392B;--red-bg:#FDE8E8;--green:#2D6A2D;--green-bg:#E8F5E2;
+  --amber:#B45309;--amber-bg:#FEF3E2;--code-bg:#1E2A3A;
+  --xl-header:#217346;--xl-blue:#2E75B6;--xl-bg:#F2F2F2;--xl-border:#D0D0D0;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+.header{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.hlogo{width:36px;height:36px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.hleft{display:flex;align-items:center;gap:10px}
+.htitle{font-size:14px;font-weight:600;color:#fff}
+.hsub{font-size:11px;color:#80BFBF;margin-top:1px}
+.hbadge{font-size:11px;font-weight:600;padding:4px 14px;background:var(--teal);color:#fff;border-radius:20px}
+.hright{display:flex;align-items:center;gap:16px}
+.hback{font-size:12px;color:#80BFBF;text-decoration:none}
+.hback:hover{color:#fff}
+.container{max-width:1360px;margin:0 auto;padding:1.5rem}
+.banner{background:var(--teal);border-radius:10px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;flex-wrap:wrap;gap:10px}
+.banner strong{color:#fff;font-size:14px;font-weight:600;display:block;margin-bottom:2px}
+.banner p{font-size:12px;color:#C0E8E8;max-width:700px;line-height:1.5}
+.scenario-tag{font-size:11px;font-weight:600;color:var(--navy);background:#fff;padding:5px 12px;border-radius:6px;white-space:nowrap}
+
+/* EXCEL WINDOW */
+.xl-window{background:#fff;border:1px solid #AAA;border-radius:6px;overflow:hidden;margin-bottom:1.4rem;box-shadow:0 4px 20px rgba(0,0,0,.12)}
+.xl-titlebar{background:#217346;display:flex;align-items:center;padding:6px 12px;gap:8px}
+.xl-controls{display:flex;gap:5px}
+.xl-dot{width:12px;height:12px;border-radius:50%}
+.xl-title{color:#fff;font-size:12px;font-weight:600;margin-left:4px}
+.xl-ribbon{background:#F3F3F3;border-bottom:1px solid #D0D0D0;padding:4px 8px;display:flex;align-items:center;gap:6px}
+.xl-tab{font-size:11px;padding:4px 10px;border-radius:3px;cursor:pointer;color:#444}
+.xl-tab.active{background:#217346;color:#fff}
+.xl-tab-bar{background:#E9E9E9;border-bottom:2px solid #217346;display:flex;align-items:center;padding:0 8px}
+.xl-sheet-tab{font-size:11px;padding:5px 14px;cursor:pointer;color:#555;border-right:1px solid #CCC;background:#D4D4D4}
+.xl-sheet-tab.active{background:#fff;color:#217346;font-weight:600;border-top:2px solid #217346;border-bottom:none}
+.xl-formula-bar{background:#fff;border-bottom:1px solid #D0D0D0;display:flex;align-items:center;gap:0;font-size:12px}
+.xl-cell-ref{padding:4px 10px;border-right:1px solid #D0D0D0;color:#444;min-width:60px;font-weight:600}
+.xl-fx{padding:4px 10px;color:#217346;font-weight:600;border-right:1px solid #D0D0D0;font-size:13px}
+.xl-formula-text{padding:4px 10px;color:#1A1A2E;font-family:'Courier New',monospace;font-size:12px;flex:1}
+.xl-grid-wrap{overflow:auto;max-height:320px}
+.xl-grid{border-collapse:collapse;font-size:11px;width:100%}
+.xl-grid .rh{background:#F2F2F2;border:1px solid #D0D0D0;padding:2px 6px;text-align:center;font-weight:600;color:#555;min-width:32px;font-size:10px;position:sticky;left:0;z-index:1}
+.xl-grid .ch{background:#F2F2F2;border:1px solid #D0D0D0;padding:3px 8px;text-align:center;font-weight:600;color:#555;font-size:10px;min-width:90px;position:sticky;top:0;z-index:2}
+.xl-grid .ch.rh{position:sticky;top:0;left:0;z-index:3}
+.xl-grid td{border:1px solid #E0E0E0;padding:2px 6px;white-space:nowrap;min-width:90px;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.xl-grid td.num{text-align:right}
+.hdr-cell{background:#217346!important;color:#fff!important;font-weight:700!important;text-align:center!important}
+.total-cell{background:#E8F4EE!important;font-weight:700!important;color:#1A5C2A!important}
+.red-cell{background:#FDE8E8!important;color:#C0392B!important;font-weight:600!important}
+.amber-cell{background:#FEF3E2!important;color:#B45309!important;font-weight:600!important}
+.green-cell{background:#E8F5E2!important;color:#2D6A2D!important;font-weight:600!important}
+.highlight-row td{background:#FFF9E6!important}
+.xl-status{background:#217346;color:#fff;font-size:11px;padding:3px 10px;display:flex;align-items:center;gap:8px}
+
+/* MAIN LAYOUT */
+.main-layout{display:grid;grid-template-columns:1fr 420px;gap:14px;margin-bottom:1.4rem}
+
+/* VBA EDITOR */
+.vba-window{background:#1E1E1E;border-radius:10px;overflow:hidden}
+.vba-titlebar{background:#3C3C3C;padding:6px 12px;display:flex;align-items:center;justify-content:space-between}
+.vba-title{font-size:12px;font-weight:600;color:#CCC}
+.vba-lang{font-size:10px;background:rgba(33,115,70,.5);color:#6BCF8F;padding:2px 8px;border-radius:4px}
+.vba-body{padding:14px;font-family:'Courier New',monospace;font-size:11.5px;line-height:1.8;color:#D4D4D4;overflow:auto;max-height:680px;white-space:pre}
+.vba-kw{color:#569CD6}
+.vba-fn{color:#DCDCAA}
+.vba-str{color:#CE9178}
+.vba-cm{color:#6A9955;font-style:italic}
+.vba-num{color:#B5CEA8}
+.vba-type{color:#4EC9B0}
+.vba-step{background:rgba(255,255,0,.08);border-left:2px solid #FFD700}
+
+/* STEPS */
+.steps-panel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:1.4rem}
+.steps-panel h3{font-size:13px;font-weight:600;margin-bottom:12px}
+.step-items{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.step-item{padding:10px 8px;border-radius:8px;border:1px solid var(--border);text-align:center;cursor:pointer;transition:all .2s;background:var(--bg)}
+.step-item:hover{border-color:var(--teal);background:#E8F4F4}
+.step-item.active{background:var(--teal);border-color:var(--teal);color:#fff}
+.step-item.done{background:var(--green-bg);border-color:#B8D8B8}
+.step-item .si-num{font-size:18px;font-weight:700;display:block;margin-bottom:3px}
+.step-item .si-lbl{font-size:10px;line-height:1.3;display:block}
+.step-item.active .si-lbl{color:#C0E8E8}
+.step-item.done .si-lbl{color:var(--green)}
+
+/* RUN MACRO */
+.macro-controls{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;flex-wrap:wrap;gap:10px}
+.btn-run{padding:10px 28px;background:#217346;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px;transition:all .2s}
+.btn-run:hover{background:#1a5c38}
+.btn-run:disabled{opacity:.5;cursor:not-allowed}
+.btn-reset{padding:10px 20px;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:7px;font-size:13px;cursor:pointer}
+.btn-reset:hover{background:#E8F4F4}
+.progress-wrap{flex:1;max-width:400px}
+.progress-label{font-size:12px;color:var(--muted);margin-bottom:5px}
+.progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:#217346;border-radius:3px;transition:width .6s ease;width:0%}
+.status-msg{font-size:12px;color:var(--muted);font-style:italic}
+
+/* RESULT */
+.result-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.result-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;border-top:3px solid #217346;display:none}
+.result-card.show{display:block}
+.rc-label{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.4px;margin-bottom:6px}
+.rc-val{font-size:22px;font-weight:700;color:var(--text)}
+.rc-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+.footer{background:var(--navy);color:#80BFBF;text-align:center;padding:16px;font-size:11px;margin-top:2rem}
+.footer strong{color:#fff}
+.footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="hleft">
+    <div class="hlogo">ST</div>
+    <div>
+      <div class="htitle">Skill Demo 3 — Excel VBA: Automated Report Generator</div>
+      <div class="hsub">Senior Insight Analyst Portfolio &nbsp;·&nbsp; Severn Trent Water</div>
+    </div>
+  </div>
+  <div class="hright">
+    <a class="hback" href="index.html">← Back to Dashboard</a>
+    <span class="hbadge">Live Demo</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="banner">
+    <div>
+      <strong>Excel VBA — Weekly Complaint Report: From Raw Data to Formatted Output in One Click</strong>
+      <p>Real scenario: Every Monday at 8am the analyst runs this macro. It takes a raw data dump from the Customer Operation System, validates it, builds a formatted summary by hub and category, applies conditional formatting, calculates KPIs, and saves a dated copy — all automatically.</p>
+    </div>
+    <span class="scenario-tag">Skill Demo 3 of 6</span>
+  </div>
+
+  <div class="steps-panel">
+    <h3>What the macro does — 6 steps</h3>
+    <div class="step-items" id="stepItems">
+      <div class="step-item active" id="si0"><span class="si-num">1</span><span class="si-lbl">Load Raw Data</span></div>
+      <div class="step-item" id="si1"><span class="si-num">2</span><span class="si-lbl">Validate & Clean</span></div>
+      <div class="step-item" id="si2"><span class="si-num">3</span><span class="si-lbl">Build Summary</span></div>
+      <div class="step-item" id="si3"><span class="si-num">4</span><span class="si-lbl">Apply Formatting</span></div>
+      <div class="step-item" id="si4"><span class="si-num">5</span><span class="si-lbl">Insert KPI Row</span></div>
+      <div class="step-item" id="si5"><span class="si-num">6</span><span class="si-lbl">Save & Done</span></div>
+    </div>
+  </div>
+
+  <div class="macro-controls">
+    <div style="display:flex;gap:8px">
+      <button class="btn-run" id="btnRun" onclick="runMacro()">&#9654; Run Macro</button>
+      <button class="btn-reset" onclick="resetAll()">&#8635; Reset</button>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label" id="progressLabel">Ready to run</div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="status-msg" id="statusMsg">Press Run Macro to execute the VBA procedure</div>
+  </div>
+
+  <div class="result-grid" id="resultGrid">
+    <div class="result-card" id="rc0"><div class="rc-label">Rows Processed</div><div class="rc-val">847</div><div class="rc-sub">From raw CRM export</div></div>
+    <div class="result-card" id="rc1"><div class="rc-label">Errors Removed</div><div class="rc-val">23</div><div class="rc-sub">Duplicates + nulls</div></div>
+    <div class="result-card" id="rc2"><div class="rc-label">Report Sheets</div><div class="rc-val">3</div><div class="rc-sub">Summary, Detail, KPIs</div></div>
+    <div class="result-card" id="rc3"><div class="rc-label">Time Saved</div><div class="rc-val">~2hrs</div><div class="rc-sub">vs manual process</div></div>
+  </div>
+
+  <div class="main-layout">
+    <div>
+      <div class="xl-window" id="xlWindow">
+        <div class="xl-titlebar">
+          <div class="xl-controls">
+            <div class="xl-dot" style="background:#FF5F57"></div>
+            <div class="xl-dot" style="background:#FFBD2E"></div>
+            <div class="xl-dot" style="background:#28C840"></div>
+          </div>
+          <div class="xl-title" id="xlTitle">ST_Complaint_Report_Raw.xlsx — Excel</div>
+        </div>
+        <div class="xl-ribbon">
+          <span class="xl-tab active">Home</span>
+          <span class="xl-tab">Insert</span>
+          <span class="xl-tab">Data</span>
+          <span class="xl-tab" style="background:#2E75B6;color:#fff;border-radius:3px">Developer</span>
+          <span class="xl-tab">View</span>
+        </div>
+        <div class="xl-formula-bar">
+          <span class="xl-cell-ref" id="cellRef">A1</span>
+          <span class="xl-fx">fx</span>
+          <span class="xl-formula-text" id="formulaText">Complaint_ID</span>
+        </div>
+        <div class="xl-tab-bar">
+          <div class="xl-sheet-tab active" id="sheetRaw">Raw_Data</div>
+          <div class="xl-sheet-tab" id="sheetSummary" style="display:none">Weekly_Summary</div>
+          <div class="xl-sheet-tab" id="sheetKPI" style="display:none">KPI_Dashboard</div>
+        </div>
+        <div class="xl-grid-wrap" id="xlGridWrap">
+          <table class="xl-grid" id="xlGrid"></table>
+        </div>
+        <div class="xl-status">
+          <span id="xlStatusText">Ready</span>
+          <span style="margin-left:auto;font-size:10px" id="xlStatusRight">847 records</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="vba-window">
+      <div class="vba-titlebar">
+        <span class="vba-title">Module1 — GenerateWeeklyReport()</span>
+        <span class="vba-lang">VBA</span>
+      </div>
+      <div class="vba-body" id="vbaBody"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="footer">
+  Built by <strong>Olawale Badekale</strong> &nbsp;·&nbsp; Candidate for Customer Experience Data Analytics Specialist &nbsp;·&nbsp; Severn Trent Water
+  &nbsp;·&nbsp; <a href="https://github.com/cuthbertola" target="_blank">github.com/cuthbertola</a>
+  &nbsp;·&nbsp; <a href="mailto:Badekaleolawale@gmail.com">Badekaleolawale@gmail.com</a>
+</footer>
+
+<script>
+const rawRows=[
+  ['CMP-0841','01/04/2026','John Smith','Billing','Coventry','Open','High'],
+  ['CMP-0842','01/04/2026','Jane Doe','Water Quality','Derby','Open','Medium'],
+  ['CMP-0843','02/04/2026','Michael Brown','Supply Interruption','Leicester','Closed','High'],
+  ['CMP-0844','02/04/2026','Sarah Wilson','Billing','Birmingham','In Progress','High'],
+  ['CMP-0845','','Robert Jones','Sewage','Coventry','Open',''],
+  ['CMP-0841','01/04/2026','John Smith','Billing','Coventry','Open','High'],
+  ['CMP-0846','03/04/2026','Emily Davis','Meter Reading','Shrewsbury','Closed','Low'],
+  ['CMP-0847','03/04/2026','David Taylor','Billing','Derby','Open','Medium'],
+  ['CMP-0848','04/04/2026','Lisa Anderson','Water Quality','Coventry','Open','High'],
+  ['CMP-0849','04/04/2026','James Martin','Supply Interruption','Leicester','Open','Medium'],
+  ['CMP-0850','05/04/2026','Anna White','Billing','Birmingham','Closed','Low'],
+  ['CMP-0851','05/04/2026','Tom Harris','Account Mgmt','Derby','Open','Low'],
+  ['CMP-0852','06/04/2026','Helen Clark','Billing','Coventry','Open','High'],
+  ['CMP-0853','06/04/2026','Peter Lewis','Sewage','Leicester','In Progress','Medium'],
+  ['CMP-0854','07/04/2026','Mary Walker','Water Quality','Shrewsbury','Closed','Low'],
+  ['','07/04/2026','NULL','Billing','Derby','Open','High'],
+  ['CMP-0856','07/04/2026','Chris Hall','Supply Interruption','Coventry','Open','High'],
+  ['CMP-0857','08/04/2026','Sue Allen','Billing','Birmingham','Closed','Medium'],
+];
+
+const summaryData=[
+  ['Hub','Billing','Water Quality','Supply Int.','Sewage','Meter Reading','Account Mgmt','TOTAL','Repeat %','FCR %'],
+  ['Coventry',245,89,67,34,28,15,478,26.4,68.2],
+  ['Derby',198,45,88,12,22,19,384,34.2,62.4],
+  ['Leicester',167,78,54,28,31,11,369,27.8,67.8],
+  ['Birmingham',142,52,41,19,18,22,294,29.1,65.1],
+  ['Shrewsbury',95,38,29,8,14,9,193,24.6,71.2],
+  ['TOTAL',847,302,279,101,113,76,1718,28.4,67.3],
+];
+
+const vbaCode=`<span class="vba-cm">'================================================
+' Severn Trent Water — Weekly Complaint Report
+' Author: Olawale Badekale
+' Purpose: Automates Monday morning report build
+'================================================</span>
+
+<span class="vba-kw">Sub</span> <span class="vba-fn">GenerateWeeklyReport</span>()
+
+    <span class="vba-cm">' Disable screen updates for performance</span>
+    Application.ScreenUpdating = <span class="vba-kw">False</span>
+    Application.DisplayAlerts = <span class="vba-kw">False</span>
+
+    <span class="vba-cm">' ── STEP 1: Load and reference raw data ────────</span>
+    <span class="vba-kw">Dim</span> wsRaw     <span class="vba-kw">As</span> <span class="vba-type">Worksheet</span>
+    <span class="vba-kw">Dim</span> wsReport  <span class="vba-kw">As</span> <span class="vba-type">Worksheet</span>
+    <span class="vba-kw">Dim</span> wsKPI     <span class="vba-kw">As</span> <span class="vba-type">Worksheet</span>
+    <span class="vba-kw">Dim</span> lastRow   <span class="vba-kw">As</span> <span class="vba-type">Long</span>
+
+    <span class="vba-kw">Set</span> wsRaw = ThisWorkbook.Sheets(<span class="vba-str">"Raw_Data"</span>)
+    lastRow = wsRaw.Cells(Rows.Count, <span class="vba-str">"A"</span>).End(xlUp).Row
+
+    <span class="vba-cm">' ── STEP 2: Validate and clean raw data ────────</span>
+    <span class="vba-kw">Dim</span> errCount <span class="vba-kw">As</span> <span class="vba-type">Integer</span>
+    errCount = <span class="vba-num">0</span>
+
+    <span class="vba-kw">Dim</span> i <span class="vba-kw">As</span> <span class="vba-type">Long</span>
+    <span class="vba-kw">For</span> i = lastRow <span class="vba-kw">To</span> <span class="vba-num">2</span> <span class="vba-kw">Step</span> -<span class="vba-num">1</span>
+        <span class="vba-cm">' Remove blank IDs and duplicate rows</span>
+        <span class="vba-kw">If</span> wsRaw.Cells(i, <span class="vba-num">1</span>).Value = <span class="vba-str">""</span> <span class="vba-kw">Or</span> _
+           wsRaw.Cells(i, <span class="vba-num">3</span>).Value = <span class="vba-str">"NULL"</span> <span class="vba-kw">Then</span>
+            wsRaw.Rows(i).Delete
+            errCount = errCount + <span class="vba-num">1</span>
+        <span class="vba-kw">End If</span>
+    <span class="vba-kw">Next</span> i
+
+    <span class="vba-cm">' Remove duplicates based on Complaint ID</span>
+    wsRaw.Range(<span class="vba-str">"A1"</span>).CurrentRegion.RemoveDuplicates _
+        Columns:=<span class="vba-num">1</span>, Header:=xlYes
+    errCount = errCount + <span class="vba-num">1</span>
+
+    <span class="vba-cm">' ── STEP 3: Create summary sheet ───────────────</span>
+    <span class="vba-kw">On Error Resume Next</span>
+    ThisWorkbook.Sheets(<span class="vba-str">"Weekly_Summary"</span>).Delete
+    <span class="vba-kw">On Error GoTo 0</span>
+
+    <span class="vba-kw">Set</span> wsReport = ThisWorkbook.Sheets.Add( _
+        After:=wsRaw)
+    wsReport.Name = <span class="vba-str">"Weekly_Summary"</span>
+
+    <span class="vba-cm">' Write headers and data from pivot</span>
+    <span class="vba-kw">Dim</span> pt <span class="vba-kw">As</span> <span class="vba-type">PivotTable</span>
+    <span class="vba-cm">' ... pivot logic builds summary by hub ...</span>
+
+    <span class="vba-cm">' ── STEP 4: Apply conditional formatting ───────</span>
+    <span class="vba-kw">With</span> wsReport.Range(<span class="vba-str">"B2:H7"</span>)
+        <span class="vba-cm">' High repeat rate = red background</span>
+        .FormatConditions.Add Type:=xlCellValue, _
+            Operator:=xlGreater, Formula1:=<span class="vba-str">"=30"</span>
+        .FormatConditions(1).Interior.Color = <span class="vba-num">RGB(253, 232, 232)</span>
+        .FormatConditions(1).Font.Color = <span class="vba-num">RGB(192, 57, 43)</span>
+        <span class="vba-cm">' Good FCR = green background</span>
+        .FormatConditions.Add Type:=xlCellValue, _
+            Operator:=xlGreater, Formula1:=<span class="vba-str">"=70"</span>
+        .FormatConditions(2).Interior.Color = <span class="vba-num">RGB(232, 245, 226)</span>
+    <span class="vba-kw">End With</span>
+
+    <span class="vba-cm">' ── STEP 5: Insert KPI summary row ─────────────</span>
+    <span class="vba-kw">Set</span> wsKPI = ThisWorkbook.Sheets.Add( _
+        After:=wsReport)
+    wsKPI.Name = <span class="vba-str">"KPI_Dashboard"</span>
+
+    <span class="vba-cm">' Write C-MeX, FCR, Repeat Rate KPIs</span>
+    wsKPI.Range(<span class="vba-str">"B2"</span>).Value = <span class="vba-str">"C-MeX Score"</span>
+    wsKPI.Range(<span class="vba-str">"C2"</span>).Formula = <span class="vba-str">"=Weekly_Summary!H8"</span>
+
+    <span class="vba-cm">' ── STEP 6: Save dated copy and notify ─────────</span>
+    <span class="vba-kw">Dim</span> savePath <span class="vba-kw">As</span> <span class="vba-type">String</span>
+    savePath = <span class="vba-str">"C:\Reports\Weekly\"</span> & _
+        Format(Now(), <span class="vba-str">"YYYY-MM-DD"</span>) & _
+        <span class="vba-str">"_ST_Weekly_Complaint_Report.xlsx"</span>
+
+    ThisWorkbook.SaveCopyAs savePath
+
+    <span class="vba-cm">' Re-enable screen updates</span>
+    Application.ScreenUpdating = <span class="vba-kw">True</span>
+    Application.DisplayAlerts = <span class="vba-kw">True</span>
+
+    MsgBox <span class="vba-str">"Report complete! "</span> & vbCrLf & _
+           errCount & <span class="vba-str">" errors removed."</span> & vbCrLf & _
+           <span class="vba-str">"Saved to: "</span> & savePath, _
+           vbInformation, <span class="vba-str">"Weekly Report — Done"</span>
+
+<span class="vba-kw">End Sub</span>`;
+
+let macroStep=0;
+let macroRunning=false;
+
+function renderRawGrid(){
+  const cols=['A','B','C','D','E','F','G'];
+  const hdrs=['Complaint_ID','Date','Customer','Category','Hub','Status','Priority'];
+  let html=`<tr><th class="ch rh"></th>${cols.map(c=>`<th class="ch">${c}</th>`).join('')}</tr>`;
+  html+=`<tr><td class="rh">1</td>${hdrs.map(h=>`<td style="background:#217346;color:#fff;font-weight:700">${h}</td>`).join('')}</tr>`;
+  rawRows.forEach((row,i)=>{
+    const rn=i+2;
+    const isDupe=i===5;
+    const isErr=i===15;
+    html+=`<tr class="${isDupe||isErr?'highlight-row':''}">`;
+    html+=`<td class="rh">${rn}</td>`;
+    row.forEach((cell,ci)=>{
+      let cls='';
+      if(isDupe) cls='amber-cell';
+      if(isErr) cls='red-cell';
+      if(!cell) cls='red-cell';
+      html+=`<td class="${cls}">${cell||'(empty)'}</td>`;
+    });
+    html+='</tr>';
+  });
+  document.getElementById('xlGrid').innerHTML=html;
+  document.getElementById('xlStatusText').textContent='Macro ready — 2 errors highlighted';
+  document.getElementById('xlStatusRight').textContent='18 rows (raw)';
+  document.getElementById('cellRef').textContent='A1';
+  document.getElementById('formulaText').textContent='Complaint_ID';
+  document.getElementById('xlTitle').textContent='ST_Complaint_Report_Raw.xlsx — Excel';
+  document.getElementById('sheetSummary').style.display='none';
+  document.getElementById('sheetKPI').style.display='none';
+}
+
+function renderSummaryGrid(){
+  const hdrs=summaryData[0];
+  const cols=hdrs.map((_,i)=>String.fromCharCode(65+i));
+  let html=`<tr><th class="ch rh"></th>${cols.map(c=>`<th class="ch">${c}</th>`).join('')}</tr>`;
+  summaryData.forEach((row,ri)=>{
+    html+=`<tr><td class="rh">${ri+1}</td>`;
+    row.forEach((cell,ci)=>{
+      let cls='';
+      if(ri===0) cls='hdr-cell';
+      else if(ri===summaryData.length-1) cls='total-cell';
+      else if(ci===8 && typeof cell==='number'){
+        cls=cell>30?'red-cell':cell>25?'amber-cell':'green-cell';
+      }
+      else if(ci===9 && typeof cell==='number'){
+        cls=cell>=70?'green-cell':cell>=65?'amber-cell':'red-cell';
+      }
+      const isNum=typeof cell==='number';
+      html+=`<td class="${cls} ${isNum&&ci>0?'num':''}">${isNum?(ci>=8?cell.toFixed(1)+'%':cell.toLocaleString()):cell}</td>`;
+    });
+    html+='</tr>';
+  });
+  document.getElementById('xlGrid').innerHTML=html;
+  document.getElementById('xlStatusText').textContent='Summary built — conditional formatting applied';
+  document.getElementById('xlStatusRight').textContent='5 hubs + totals row';
+  document.getElementById('xlTitle').textContent='ST_2026-04-07_Weekly_Complaint_Report.xlsx — Excel';
+  document.getElementById('sheetSummary').style.display='';
+  document.getElementById('sheetKPI').style.display='';
+  document.getElementById('sheetSummary').className='xl-sheet-tab active';
+  document.getElementById('sheetRaw').className='xl-sheet-tab';
+  document.getElementById('cellRef').textContent='H8';
+  document.getElementById('formulaText').textContent='=SUM(B8:G8)';
+}
+
+const macroSteps=[
+  {pct:16,label:'Step 1 — Loading raw data from CRM export...',msg:'Opening ST_Complaint_Report_Raw.xlsx',status:'Loading 18 rows from Raw_Data sheet',si:0},
+  {pct:33,label:'Step 2 — Validating data, removing errors...',msg:'Found 1 duplicate (CMP-0841), 1 null row — deleting both',status:'Cleaned: 16 valid records remain',si:1},
+  {pct:50,label:'Step 3 — Building summary by hub and category...',msg:'PivotTable created — aggregating by Hub × Category',status:'Summary sheet built — 5 hubs × 6 categories',si:2},
+  {pct:66,label:'Step 4 — Applying conditional formatting...',msg:'Repeat % > 30 = red | FCR % > 70 = green | totals bolded',status:'Formatting applied — Derby flagged red (34.2% repeat)',si:3},
+  {pct:83,label:'Step 5 — Inserting KPI dashboard sheet...',msg:'C-MeX, FCR, Repeat Rate written to KPI_Dashboard',status:'KPI_Dashboard sheet created with live formula references',si:4},
+  {pct:100,label:'Step 6 — Saving dated copy...',msg:'Saved: C:\\Reports\\Weekly\\2026-04-07_ST_Weekly_Complaint_Report.xlsx',status:'Complete — report saved and ready to distribute',si:5},
+];
+
+async function runMacro(){
+  if(macroRunning) return;
+  macroRunning=true;
+  document.getElementById('btnRun').disabled=true;
+  document.getElementById('btnRun').textContent='⏳ Running...';
+
+  for(let i=0;i<macroSteps.length;i++){
+    const s=macroSteps[i];
+    document.getElementById('progressFill').style.width=s.pct+'%';
+    document.getElementById('progressLabel').textContent=s.label;
+    document.getElementById('statusMsg').textContent=s.msg;
+    document.getElementById('xlStatusText').textContent=s.status;
+    for(let j=0;j<6;j++){
+      const el=document.getElementById('si'+j);
+      if(j<i) el.className='step-item done';
+      else if(j===i) el.className='step-item active';
+      else el.className='step-item';
+    }
+    if(i===2) renderSummaryGrid();
+    if(i===5){
+      document.getElementById('rc0').className='result-card show';
+      document.getElementById('rc1').className='result-card show';
+      document.getElementById('rc2').className='result-card show';
+      document.getElementById('rc3').className='result-card show';
+      for(let j=0;j<6;j++) document.getElementById('si'+j).className='step-item done';
+    }
+    await new Promise(r=>setTimeout(r,1100));
+  }
+
+  document.getElementById('progressLabel').textContent='✓ Macro complete — report ready';
+  document.getElementById('btnRun').textContent='✓ Complete';
+  document.getElementById('btnRun').style.background='#2D6A2D';
+  macroRunning=false;
+}
+
+function resetAll(){
+  macroRunning=false;
+  macroStep=0;
+  document.getElementById('progressFill').style.width='0%';
+  document.getElementById('progressLabel').textContent='Ready to run';
+  document.getElementById('statusMsg').textContent='Press Run Macro to execute the VBA procedure';
+  document.getElementById('btnRun').disabled=false;
+  document.getElementById('btnRun').textContent='▶ Run Macro';
+  document.getElementById('btnRun').style.background='#217346';
+  for(let j=0;j<6;j++) document.getElementById('si'+j).className='step-item'+(j===0?' active':'');
+  document.getElementById('si0').className='step-item active';
+  ['rc0','rc1','rc2','rc3'].forEach(id=>document.getElementById(id).className='result-card');
+  renderRawGrid();
+  document.getElementById('sheetSummary').style.display='none';
+  document.getElementById('sheetKPI').style.display='none';
+  document.getElementById('sheetRaw').className='xl-sheet-tab active';
+}
+
+document.getElementById('vbaBody').innerHTML=vbaCode;
+renderRawGrid();
+</script>
+</body>
+</html>
