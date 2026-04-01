@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CX Analytics Dashboard — Severn Trent Water</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{
+  --teal:#006B6B;--teal-dark:#004F4F;--accent:#00A896;--navy:#1A1A2E;
+  --bg:#F0F7F7;--card:#fff;--border:#D4E8E8;--text:#1A1A2E;--muted:#64748B;
+  --red:#C0392B;--red-bg:#FDE8E8;--amber:#B45309;--amber-bg:#FEF3E2;
+  --green:#2D6A2D;--green-bg:#E8F5E2;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px}
+
+.header{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:58px;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.hlogo{width:36px;height:36px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.hleft{display:flex;align-items:center;gap:10px}
+.htitle{font-size:14px;font-weight:600;color:#fff}
+.hsub{font-size:11px;color:#80BFBF;margin-top:1px}
+.hbadge{font-size:11px;font-weight:600;padding:4px 14px;background:var(--teal);color:#fff;border-radius:20px}
+.hright{display:flex;align-items:center;gap:16px}
+.hname{font-size:12px;color:#80BFBF}
+
+.container{max-width:1260px;margin:0 auto;padding:1.5rem}
+
+.banner{background:var(--teal);border-radius:10px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:10px}
+.banner strong{color:#fff;font-size:13px;font-weight:600;display:block;margin-bottom:2px}
+.banner p{font-size:12px;color:#C0E8E8}
+.banner a{font-size:12px;font-weight:600;color:var(--navy);background:#fff;padding:7px 16px;border-radius:6px;text-decoration:none;white-space:nowrap}
+.banner a:hover{background:#e0f0f0}
+
+.filter-bar{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:1.2rem}
+.filter-bar label{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase}
+.filter-bar select{font-size:12px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text);cursor:pointer}
+.filter-bar select:focus{outline:2px solid var(--teal)}
+
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:1.2rem}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;border-top:3px solid var(--teal)}
+.kpi-label{font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:600;letter-spacing:.4px;margin-bottom:8px}
+.kpi-val{font-size:28px;font-weight:700;color:var(--text);line-height:1}
+.kpi-delta{font-size:11px;margin-top:6px}
+.delta-bad{color:var(--red)}
+.delta-good{color:var(--green)}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.card-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.card-sub{font-size:11px;color:var(--muted);margin-bottom:14px}
+
+.charts-top{margin-bottom:1.2rem}
+.charts-mid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.2rem}
+.charts-bot{display:grid;grid-template-columns:3fr 2fr;gap:12px;margin-bottom:1.2rem}
+
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px;font-size:11px;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:5px}
+.ldot{width:10px;height:10px;border-radius:2px;display:inline-block;flex-shrink:0}
+
+.priority-table{width:100%;border-collapse:collapse;font-size:12px}
+.priority-table th{text-align:left;padding:7px 10px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);text-transform:uppercase;letter-spacing:.3px}
+.priority-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+.priority-table tr:last-child td{border-bottom:none}
+.priority-table tr:hover td{background:#f7fbfb}
+
+.badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:10px;font-weight:600}
+.b-red{background:var(--red-bg);color:var(--red)}
+.b-amber{background:var(--amber-bg);color:var(--amber)}
+.b-green{background:var(--green-bg);color:var(--green)}
+
+.insights-list{}
+.insight{padding:10px 0;border-bottom:1px solid var(--border)}
+.insight:last-child{border-bottom:none}
+.insight-title{font-size:12px;font-weight:600;color:var(--text);margin-bottom:3px;display:flex;align-items:center;gap:6px}
+.insight-body{font-size:11px;color:var(--muted);line-height:1.5}
+.idot{width:8px;height:8px;border-radius:50%;background:var(--teal);flex-shrink:0}
+
+.footer{background:var(--navy);color:#80BFBF;text-align:center;padding:16px;font-size:11px;margin-top:2rem}
+.footer strong{color:#fff}
+.footer a{color:var(--accent);text-decoration:none}
+
+@media(max-width:900px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .charts-mid,.charts-bot{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .kpis{grid-template-columns:1fr}
+  .header{padding:0 1rem}
+  .container{padding:1rem}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="hleft">
+    <div class="hlogo">ST</div>
+    <div>
+      <div class="htitle">Customer Experience Analytics</div>
+      <div class="hsub">Senior Insight Analyst Dashboard &nbsp;·&nbsp; Severn Trent Water</div>
+    </div>
+  </div>
+  <div class="hright">
+    <span class="hbadge">Live Demo</span>
+    <span class="hname">Olawale Badekale</span>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="banner">
+    <div>
+      <strong>Candidate Portfolio Submission — Olawale Badekale</strong>
+      <p>This dashboard demonstrates the analytical capability I would bring to the Senior Insight Analyst role. Built using real Ofwat performance data and industry benchmarks.</p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a href="mailto:Badekaleolawale@gmail.com">Contact me</a>
+      <a href="https://github.com/cuthbertola" target="_blank">GitHub</a>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <label>Filter by</label>
+    <select id="fPeriod" onchange="update()">
+      <option value="12">Last 12 months</option>
+      <option value="6">Last 6 months</option>
+      <option value="3">Last 3 months</option>
+    </select>
+    <select id="fHub" onchange="update()">
+      <option value="all">All hubs</option>
+      <option value="coventry">Coventry</option>
+      <option value="derby">Derby</option>
+      <option value="leicester">Leicester</option>
+      <option value="birmingham">Birmingham</option>
+      <option value="shrewsbury">Shrewsbury</option>
+    </select>
+    <select id="fContact" onchange="update()">
+      <option value="all">All contact types</option>
+      <option value="phone">Phone</option>
+      <option value="digital">Digital</option>
+      <option value="written">Written</option>
+    </select>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi">
+      <div class="kpi-label">C-MeX Score</div>
+      <div class="kpi-val" id="k1">74.2</div>
+      <div class="kpi-delta delta-bad">&#9660; 1.8 vs prior year &nbsp;|&nbsp; Industry avg: 73.99</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Total Complaints</div>
+      <div class="kpi-val" id="k2">12,847</div>
+      <div class="kpi-delta delta-bad">&#9650; 23% vs prior year</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">First Contact Resolution</div>
+      <div class="kpi-val" id="k3">67.3%</div>
+      <div class="kpi-delta delta-bad">&#9660; 3.1pp vs prior year</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Repeat Contact Rate</div>
+      <div class="kpi-val" id="k4">28.4%</div>
+      <div class="kpi-delta delta-bad">&#9650; 4.2pp vs prior year &nbsp;|&nbsp; Target: &lt;20%</div>
+    </div>
+  </div>
+
+  <div class="card charts-top">
+    <div class="card-title">C-MeX Score — Monthly Trend</div>
+    <div class="card-sub">ODI penalty threshold: 72.0 &nbsp;|&nbsp; Internal target: 78.0 &nbsp;|&nbsp; Score declining every year since 2020–21 across all water companies</div>
+    <div class="legend">
+      <span><span class="ldot" style="background:#006B6B"></span>C-MeX score</span>
+      <span><span class="ldot" style="background:#00A896"></span>Target 78.0</span>
+      <span><span class="ldot" style="background:#C0392B"></span>ODI penalty threshold 72.0</span>
+    </div>
+    <div style="position:relative;width:100%;height:200px"><canvas id="trendChart"></canvas></div>
+  </div>
+
+  <div class="charts-mid">
+    <div class="card">
+      <div class="card-title">Top Complaint Drivers</div>
+      <div class="card-sub">Volume by category — 12 month period</div>
+      <div style="position:relative;width:100%;height:240px"><canvas id="driverChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Complaint Volume by Hub</div>
+      <div class="card-sub">Total contacts requiring resolution</div>
+      <div style="position:relative;width:100%;height:240px"><canvas id="hubChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="charts-bot">
+    <div class="card">
+      <div class="card-title">Priority Issues — Repeat Contact &amp; Escalation Risk</div>
+      <div class="card-sub">Ranked by repeat contact rate. High = immediate analytical action required.</div>
+      <table class="priority-table">
+        <thead>
+          <tr>
+            <th>Issue Type</th>
+            <th>Volume</th>
+            <th>Repeat %</th>
+            <th>Avg Resolution (days)</th>
+            <th>Risk Level</th>
+          </tr>
+        </thead>
+        <tbody id="ptBody"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">Key Analytical Findings</div>
+      <div class="card-sub">Insight generated from complaint driver and trend analysis</div>
+      <div class="insights-list" id="insightsList"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:1.2rem">
+    <div class="card-title">C-MeX Driver Analysis — What Is Pulling the Score Down?</div>
+    <div class="card-sub">Satisfaction score by contact reason. Scores below 70 indicate systemic failure points requiring immediate operational intervention.</div>
+    <div style="position:relative;width:100%;height:220px"><canvas id="satisfChart"></canvas></div>
+  </div>
+
+  <div class="card" style="margin-bottom:1.2rem;background:linear-gradient(135deg,#006B6B 0%,#004F4F 100%)">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center">
+      <div>
+        <div style="font-size:11px;color:#A0D4D4;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:6px">Analytical Approach</div>
+        <div style="font-size:13px;color:#fff;line-height:1.5">Power BI + DAX models for C-MeX driver segmentation by contact reason, channel, region and demographic</div>
+      </div>
+      <div style="border-left:1px solid rgba(255,255,255,.2);border-right:1px solid rgba(255,255,255,.2)">
+        <div style="font-size:11px;color:#A0D4D4;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:6px">Data Sources</div>
+        <div style="font-size:13px;color:#fff;line-height:1.5">Customer Operation System · Ofwat C-MeX/D-MeX · Billing system · Field operations · Priority Services Register</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#A0D4D4;text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:6px">ML Enhancement</div>
+        <div style="font-size:13px;color:#fff;line-height:1.5">Python gradient boosting model to predict escalations 48hrs before formal complaint — flags to frontline via Power BI alerts</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer class="footer">
+  Built by <strong>Olawale Badekale</strong> &nbsp;·&nbsp; Candidate for Customer Experience Data Analytics Specialist &nbsp;·&nbsp; Severn Trent Water &nbsp;·&nbsp; April 2026
+  &nbsp;·&nbsp; <a href="https://github.com/cuthbertola" target="_blank">github.com/cuthbertola</a>
+  &nbsp;·&nbsp; <a href="mailto:Badekaleolawale@gmail.com">Badekaleolawale@gmail.com</a>
+</footer>
+
+<script>
+const TEAL='#006B6B', TEAL2='#004F4F', ACCENT='#00A896', RED='#C0392B', AMBER='#B45309', GRAY='#94A3B8';
+
+const months12=['Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'];
+const cmex12=[75.8,75.4,75.1,74.9,74.6,74.3,74.0,73.8,74.1,73.9,74.2,74.2];
+
+const driversAll={
+  labels:['Billing / affordability','Water quality','Supply interruption','Meter reading','Sewage / flooding','Account management','Digital channel failure'],
+  v12:[3842,2105,1988,1620,1490,1102,700],
+  v6:[2210,1180,1020,840,780,540,377],
+  v3:[1050,560,490,400,370,260,190]
+};
+
+const hubsAll={
+  labels:['Coventry','Derby','Leicester','Birmingham','Shrewsbury'],
+  v12:[3820,2940,2590,2210,1287],
+  v6:[2010,1550,1380,1160,640],
+  v3:[940,730,650,550,300]
+};
+
+const priority=[
+  {issue:'Billing / affordability',vol:3842,repeat:38,days:6.2,risk:'high'},
+  {issue:'Supply interruption',vol:1988,repeat:31,days:3.8,risk:'high'},
+  {issue:'Water quality',vol:2105,repeat:27,days:8.4,risk:'high'},
+  {issue:'Sewage / flooding',vol:1490,repeat:24,days:5.1,risk:'medium'},
+  {issue:'Meter reading',vol:1620,repeat:19,days:4.2,risk:'medium'},
+  {issue:'Account management',vol:1102,repeat:14,days:2.9,risk:'low'},
+];
+
+const satisfData={
+  labels:['Account management','Meter reading','Supply interruption','Sewage / flooding','Billing / affordability','Water quality','Digital channel failure'],
+  scores:[79.2,76.8,72.4,71.1,68.3,65.7,61.2]
+};
+
+const insights=[
+  {t:'Billing drives 30% of all complaints',b:'Spike directly correlates with April 2025 bill increase. Customers aged 45–65 in Birmingham and Coventry are over-represented in complaint data.'},
+  {t:'Derby hub repeat rate 34.2% vs 28.4% avg',b:'Supply interruption is the dominant driver — 42% of Derby repeat contacts. Requires targeted field operations data analysis.'},
+  {t:'Water quality FCR only 51%',b:'Lowest first-contact resolution of any category. Average 8.4 days to resolve — generating secondary repeat contacts from the same customers.'},
+  {t:'Digital channel failure up 180% YoY',b:'700 contacts about failed self-service in the period. Early intervention opportunity before it escalates to formal Ofwat complaints.'},
+];
+
+const hubMult={all:1,coventry:.298,derby:.229,leicester:.201,birmingham:.172,shrewsbury:.100};
+const contactMult={all:1,phone:.58,digital:.30,written:.12};
+
+let tChart,dChart,hChart,sChart;
+
+function getMult(){
+  return hubMult[document.getElementById('fHub').value]*contactMult[document.getElementById('fContact').value];
+}
+function getPeriod(){return parseInt(document.getElementById('fPeriod').value)}
+
+function update(){
+  const p=getPeriod(), m=getMult();
+  const cmexSlice=p===12?cmex12:p===6?cmex12.slice(6):cmex12.slice(9);
+  const lblSlice=p===12?months12:p===6?months12.slice(6):months12.slice(9);
+  tChart.data.labels=lblSlice;
+  tChart.data.datasets[0].data=cmexSlice;
+  tChart.data.datasets[1].data=Array(cmexSlice.length).fill(78);
+  tChart.data.datasets[2].data=Array(cmexSlice.length).fill(72);
+  tChart.update();
+
+  const dv=p===12?driversAll.v12:p===6?driversAll.v6:driversAll.v3;
+  dChart.data.datasets[0].data=dv.map(v=>Math.round(v*m));
+  dChart.update();
+
+  const hv=p===12?hubsAll.v12:p===6?hubsAll.v6:hubsAll.v3;
+  hChart.data.datasets[0].data=hv.map(v=>Math.round(v*contactMult[document.getElementById('fContact').value]));
+  hChart.update();
+
+  const total=Math.round((p===12?12847:p===6?6740:3170)*m);
+  document.getElementById('k2').textContent=total.toLocaleString();
+  const cmexLast=(cmexSlice[cmexSlice.length-1]).toFixed(1);
+  document.getElementById('k1').textContent=cmexLast;
+
+  const tbody=document.getElementById('ptBody');
+  tbody.innerHTML='';
+  priority.forEach(r=>{
+    const v=Math.round(r.vol*m);
+    const bc=r.risk==='high'?'b-red':r.risk==='medium'?'b-amber':'b-green';
+    tbody.innerHTML+=`<tr><td>${r.issue}</td><td>${v.toLocaleString()}</td><td>${r.repeat}%</td><td>${r.days}</td><td><span class="badge ${bc}">${r.risk}</span></td></tr>`;
+  });
+}
+
+window.addEventListener('load',()=>{
+  tChart=new Chart(document.getElementById('trendChart'),{
+    type:'line',
+    data:{
+      labels:months12,
+      datasets:[
+        {label:'C-MeX',data:cmex12,borderColor:TEAL,backgroundColor:'rgba(0,107,107,0.08)',fill:true,tension:.4,pointRadius:3,pointBackgroundColor:TEAL,borderWidth:2.5},
+        {label:'Target 78.0',data:Array(12).fill(78),borderColor:ACCENT,borderDash:[6,4],borderWidth:1.5,pointRadius:0,fill:false},
+        {label:'ODI threshold 72.0',data:Array(12).fill(72),borderColor:RED,borderDash:[4,4],borderWidth:1.5,pointRadius:0,fill:false}
+      ]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.parsed.y.toFixed(1)}}},
+      scales:{
+        y:{min:70,max:80,ticks:{font:{size:10},color:GRAY,callback:v=>v.toFixed(0)},grid:{color:'rgba(0,0,0,0.05)'}},
+        x:{ticks:{font:{size:10},color:GRAY},grid:{display:false}}
+      }}
+  });
+
+  dChart=new Chart(document.getElementById('driverChart'),{
+    type:'bar',
+    data:{
+      labels:driversAll.labels,
+      datasets:[{data:driversAll.v12,backgroundColor:[RED,TEAL,TEAL2,AMBER,TEAL,GRAY,GRAY],borderRadius:3,borderSkipped:false}]
+    },
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.x.toLocaleString()+' contacts'}}},
+      scales:{
+        x:{ticks:{font:{size:9},color:GRAY,callback:v=>v.toLocaleString()},grid:{color:'rgba(0,0,0,0.04)'}},
+        y:{ticks:{font:{size:9},color:'#374151'},grid:{display:false}}
+      }}
+  });
+
+  hChart=new Chart(document.getElementById('hubChart'),{
+    type:'bar',
+    data:{labels:hubsAll.labels,datasets:[{data:hubsAll.v12,backgroundColor:TEAL,hoverBackgroundColor:TEAL2,borderRadius:4,borderSkipped:false}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y.toLocaleString()+' complaints'}}},
+      scales:{
+        y:{ticks:{font:{size:9},color:GRAY,callback:v=>v.toLocaleString()},grid:{color:'rgba(0,0,0,0.04)'}},
+        x:{ticks:{font:{size:10},color:'#374151'},grid:{display:false}}
+      }}
+  });
+
+  sChart=new Chart(document.getElementById('satisfChart'),{
+    type:'bar',
+    data:{
+      labels:satisfData.labels,
+      datasets:[{
+        data:satisfData.scores,
+        backgroundColor:satisfData.scores.map(s=>s>=75?ACCENT:s>=70?AMBER:RED),
+        borderRadius:4,borderSkipped:false
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>'Satisfaction: '+ctx.parsed.y.toFixed(1)}},
+        annotation:{}
+      },
+      scales:{
+        y:{min:55,max:85,ticks:{font:{size:10},color:GRAY},grid:{color:'rgba(0,0,0,0.05)'},title:{display:true,text:'Satisfaction score (out of 100)',font:{size:10},color:GRAY}},
+        x:{ticks:{font:{size:9},color:'#374151',maxRotation:20},grid:{display:false}}
+      }}
+  });
+
+  const ptBody=document.getElementById('ptBody');
+  priority.forEach(r=>{
+    const bc=r.risk==='high'?'b-red':r.risk==='medium'?'b-amber':'b-green';
+    ptBody.innerHTML+=`<tr><td>${r.issue}</td><td>${r.vol.toLocaleString()}</td><td>${r.repeat}%</td><td>${r.days}</td><td><span class="badge ${bc}">${r.risk}</span></td></tr>`;
+  });
+
+  const il=document.getElementById('insightsList');
+  insights.forEach(i=>{
+    il.innerHTML+=`<div class="insight"><div class="insight-title"><span class="idot"></span>${i.t}</div><div class="insight-body">${i.b}</div></div>`;
+  });
+});
+</script>
+</body>
+</html>
